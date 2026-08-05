@@ -1,0 +1,34 @@
+- Building...
+
+Initial chunk files | Names                        |  Raw size
+styles.css          | styles                       | 353.98 kB | 
+polyfills.js        | polyfills                    |  88.09 kB | 
+main.js             | main                         |  48.76 kB | 
+chunk-P2VO4WXO.js   | -                            |   2.43 kB | 
+chunk-AGJB6OE6.js   | -                            |   1.05 kB | 
+
+                    | Initial total                | 494.31 kB
+
+Lazy chunk files    | Names                        |  Raw size
+chunk-EQHW5DCF.js   | student-form-component       | 268.98 kB | 
+chunk-BTIIBURD.js   | student-report-component     | 208.94 kB | 
+chunk-OU7ZJDX7.js   | master-report-component      |  66.59 kB | 
+chunk-L76QW5T6.js   | full-configuration-component |  58.18 kB | 
+chunk-K3YGCTBZ.js   | dashboard-component          |  48.18 kB | 
+chunk-22EFB6NY.js   | specialization-component     |  39.58 kB | 
+chunk-RPJ3KVRA.js   | streams-component            |  35.46 kB | 
+chunk-6ICWHCW4.js   | classes-component            |  35.11 kB | 
+chunk-ECXHHKJV.js   | school-component             |  32.51 kB | 
+chunk-QKYYCBFZ.js   | education-board-component    |  26.10 kB | 
+chunk-GOSLI6QK.js   | sessions-component           |  25.38 kB | 
+chunk-FKUWLKT2.js   | login-component              |  13.81 kB | 
+chunk-LFKWDRQD.js   | signup-component             |  12.35 kB | 
+chunk-LTJVJRQP.js   | -                            |   7.16 kB | 
+chunk-QUP6HBOO.js   | -                            |   5.33 kB | 
+...and 6 more lazy chunks files. Use "--verbose" to show all the files.
+
+Application bundle generation complete. [13.594 seconds]
+
+Watch mode enabled. Watching for file changes...
+  ➜  Local:   http://localhost:4200/
+  ➜  press h + enter to show help

@@ -1,0 +1,208 @@
+:host {
+  display: block;
+  --paper: #faf7f0;
+  --surface: #ffffff;
+  --ink: #1c2333;
+  --ink-soft: #5b6478;
+  --ink-faint: #8b93a7;
+  --rule: #e6e1d3;
+  --rule-strong: #d7cfb8;
+  --brass: #96702f;
+  --brass-dark: #7a5a24;
+  --brass-light: #c99a4f;
+  --brass-soft: #f5edda;
+  --indigo: #2e3a5f;
+  --error: #9c3b34;
+  --error-bg: #fbeeec;
+  --shadow-sm: 0 1px 2px rgba(28, 35, 51, .06);
+  --shadow-lg: 0 30px 70px rgba(28, 35, 51, .22), 0 10px 26px rgba(28, 35, 51, .1);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+:host-context(.dark-mode) {
+  --paper: #111827; --surface: #1f2937; --ink: #f8fafc; --ink-soft: #cbd5e1;
+  --ink-faint: #94a3b8; --rule: #334155; --rule-strong: #475569;
+  --brass-soft: #26354a; --error-bg: #3a1c22;
+}
+
+* { box-sizing: border-box; }
+
+/* Login has its own full-page wrapper that centers the card; the original
+   Signup markup had no equivalent, so the card wasn't centered on the page.
+   Matching that structure here. */
+.auth-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  background:
+    radial-gradient(circle at top left, rgba(201, 154, 79, 0.16), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(46, 58, 95, 0.12), transparent 28%),
+    linear-gradient(180deg, #1c1712 0%, #2b241d 55%, var(--paper) 55%, var(--paper) 100%);
+}
+
+.auth-card {
+  position: relative;
+  width: min(100%, 28rem);
+  margin: 0;
+  padding: 2.25rem 2rem 2rem;
+  border-radius: 20px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.auth-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0;
+  width: 100%; height: 4px;
+  background: linear-gradient(90deg, var(--brass-light), var(--brass-dark));
+}
+
+.auth-card__eyebrow {
+  margin: 0 0 .4rem;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .74rem;
+  font-weight: 700;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.auth-card__title {
+  margin: 0 0 1.75rem;
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-weight: 600;
+  font-size: 2.1rem;
+  line-height: 1.1;
+  letter-spacing: -.01em;
+  color: var(--ink);
+}
+
+form {
+  display: grid;
+  gap: 1.15rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  margin-bottom: 0;
+}
+
+.field label {
+  font-size: .84rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.field input {
+  width: 100%;
+  min-height: 3.1rem;
+  padding: 0 1rem;
+  border: 1px solid var(--rule-strong);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: .95rem;
+  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+
+.field input:hover { border-color: var(--ink-faint); }
+
+.field input:focus {
+  outline: none;
+  border-color: var(--brass);
+  background: var(--surface);
+  box-shadow: 0 0 0 4px rgba(150, 112, 47, .12);
+}
+
+.stamp-btn {
+  width: 100%;
+  height: 3.4rem;
+  margin-top: .25rem;
+  border: 1px solid var(--brass-dark);
+  border-radius: 10px;
+  background: linear-gradient(180deg, var(--brass) 0%, var(--brass-dark) 100%);
+  color: #ffffff;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: .95rem;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: transform .15s ease, box-shadow .15s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.stamp-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 26px rgba(122, 90, 36, .32);
+}
+
+.stamp-btn:disabled {
+  background: var(--rule);
+  border-color: var(--rule-strong);
+  color: var(--ink-faint);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.stamp-btn::before {
+  content: '';
+  position: absolute;
+  left: -120%;
+  top: 0;
+  width: 60%;
+  height: 100%;
+  background: rgba(255, 255, 255, .18);
+  transform: skewX(-25deg);
+  transition: .6s;
+}
+
+.stamp-btn:hover:not(:disabled)::before {
+  left: 140%;
+}
+
+.error {
+  color: var(--error);
+  font-size: .82rem;
+  font-weight: 600;
+  margin: .5rem 0 0;
+}
+
+.auth-card__switch {
+  margin: 1.5rem 0 0;
+  text-align: center;
+  font-size: .88rem;
+  color: var(--ink-soft);
+}
+
+.auth-card__switch a {
+  color: var(--brass-dark);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.auth-card__switch a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 640px) {
+  .auth-page {
+    padding: 1rem;
+  }
+
+  .auth-card {
+    padding: 1.75rem 1.35rem 1.5rem;
+    border-radius: 16px;
+  }
+
+  .auth-card__title {
+    font-size: 1.75rem;
+  }
+}

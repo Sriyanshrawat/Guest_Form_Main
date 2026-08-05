@@ -1,0 +1,97 @@
+<section class="course-page">
+  <header class="course-page__heading">
+    <div>
+      <h1>Streams</h1>
+    </div>
+  </header>
+
+  <section class="course-card">
+    <div class="course-card__title">
+      <span class="course-icon"><i class="bi bi-plus-circle"></i></span>
+      <div>
+        <h2>{{ editingId == null ? "Add a stream" : "Edit stream details" }}</h2>
+      </div>
+    </div>
+
+    <div class="course-form">
+      <label><span>Select school <b>*</b></span>
+        <select [(ngModel)]="selectedSchoolId" name="schoolId" (change)="onSchoolChange()">
+          <option [ngValue]="null" disabled>Select a school</option>
+          <option *ngFor="let school of schools" [ngValue]="school.id">{{ school.name }}</option>
+        </select>
+      </label>
+
+      <label><span>Select class <b>*</b></span>
+        <select [(ngModel)]="selectedClassId" name="classId" [disabled]="!selectedSchoolId">
+          <option [ngValue]="null" disabled>{{ selectedSchoolId ? "Select a class" : "Pick a school first" }}</option>
+          <option *ngFor="let cls of eligibleClasses" [ngValue]="cls.id">{{ cls.name }} — {{ cls.section }}</option>
+        </select>
+      </label>
+
+      <label><span>Stream name <b>*</b></span>
+        <input [(ngModel)]="streamName" name="streamName" type="text" placeholder="For example, Science" [disabled]="!selectedClassId" (keyup.enter)="saveStream()" />
+      </label>
+
+      <label><span>Acronym</span>
+        <input [(ngModel)]="acronym" name="acronym" type="text" placeholder="Optional short form (e.g., SCI)" [disabled]="!selectedClassId" (keyup.enter)="saveStream()" />
+      </label>
+    </div>
+
+    <div class="course-card__actions">
+      <button type="button" class="button button--quiet" (click)="clearForm()"><i class="bi bi-arrow-counterclockwise"></i> Reset</button>
+      <button type="button" class="button button--save" (click)="saveStream()" [disabled]="saving">
+        <i class="bi bi-check2"></i> {{ saving ? "Saving..." : editingId == null ? "Save stream" : "Update stream" }}
+      </button>
+    </div>
+
+    <p class="notice notice--error" *ngIf="errorMessage"><i class="bi bi-exclamation-circle"></i>{{ errorMessage }}</p>
+    <p class="notice notice--success" *ngIf="message"><i class="bi bi-check-circle"></i>{{ message }}</p>
+  </section>
+
+  <section class="course-card course-card--list">
+    <div class="course-list__header">
+      <div>
+        <h2><i class="bi bi-collection"></i> Stream library</h2>
+        <span>{{ filteredStreams.length }} stream{{ filteredStreams.length === 1 ? "" : "s" }} shown</span>
+      </div>
+      <div class="search" style="display:none"><i class="bi bi-search"></i>
+        <input [(ngModel)]="searchTerm" name="streamSearch" type="search" placeholder="Find a stream or class" />
+      </div>
+    </div>
+
+    <app-filter-grid [rows]="streams" [columns]="gridColumns" [actions]="gridActions" [wideActions]="true" (action)="handleGridAction($event)"></app-filter-grid>
+    <div class="course-table-wrap" style="display:none">
+      <table>
+        <thead>
+          <tr>
+            <th>School</th>
+            <th>Class</th>
+            <th>Section</th>
+            <th>Stream</th>
+            <th>Acronym</th>
+            <th class="action-column">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of filteredStreams">
+            <td>{{ item.schoolName || "—" }}</td>
+            <td><div class="course-chip">{{ item.className || "—" }}</div></td>
+            <td><code>{{ item.classSection || "—" }}</code></td>
+            <td><strong>{{ item.name }}</strong></td>
+            <td><code>{{ item.acronym || '—' }}</code></td>
+            <td class="actions">
+              <button type="button" (click)="editStream(item)"><i class="bi bi-pencil"></i><span>Edit</span></button>
+              <button type="button" class="delete" (click)="deleteStream(item)"><i class="bi bi-trash3"></i><span>Delete</span></button>
+            </td>
+          </tr>
+          <tr *ngIf="!loading && filteredStreams.length === 0">
+            <td colspan="6" class="empty"><i class="bi bi-inbox"></i>No streams found yet.</td>
+          </tr>
+          <tr *ngIf="loading">
+            <td colspan="6" class="empty">Loading streams...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</section>

@@ -1,0 +1,40 @@
+<section class="sessions-page">
+  <header class="sessions-page__heading">
+    <h1>Sessions</h1>
+  </header>
+
+  <section class="sessions-card">
+    <div class="sessions-card__title">
+      <span class="sessions-icon"><i class="bi bi-calendar-plus"></i></span>
+      <div>
+        <h2>{{ editingId == null ? 'Add a session' : 'Edit session details' }}</h2>
+      </div>
+    </div>
+
+    <div class="sessions-form">
+      <label>
+        <span>Session Year <b>*</b></span>
+        <input type="text" [(ngModel)]="sessionName" name="sessionName" placeholder="e.g. 2001" pattern="\d{4}-\d{4}" (input)="autoFillSessionYear($event)" (keyup.enter)="saveSession()" />
+      </label>
+    </div>
+
+    <div class="sessions-card__actions">
+      <button class="button button--quiet" type="button" (click)="clearForm()" [disabled]="saving"><i class="bi bi-arrow-counterclockwise"></i> Clear</button>
+      <button class="button button--save" type="button" (click)="saveSession()" [disabled]="saving"><i class="bi bi-check2"></i> {{ saving ? 'Saving...' : editingId == null ? 'Save session' : 'Update session' }}</button>
+    </div>
+
+    <p class="notice notice--success" *ngIf="message"><i class="bi bi-check-circle"></i>{{ message }}</p>
+    <p class="notice notice--error" *ngIf="errorMessage"><i class="bi bi-exclamation-circle"></i>{{ errorMessage }}</p>
+  </section>
+
+  <section class="sessions-card sessions-card--list">
+    <div class="sessions-list__header">
+      <div>
+        <h2><i class="bi bi-collection"></i> Session library</h2>
+        <span>{{ sessions.length }} session{{ sessions.length === 1 ? '' : 's' }} available</span>
+      </div>
+    </div>
+
+    <app-filter-grid [rows]="sessions" [columns]="gridColumns" [actions]="gridActions" [wideActions]="true" (action)="handleGridAction($event)"></app-filter-grid>
+  </section>
+</section>

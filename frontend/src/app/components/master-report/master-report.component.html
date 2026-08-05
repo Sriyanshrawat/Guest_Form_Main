@@ -1,0 +1,162 @@
+<div class="dashboard">
+  <div class="dashboard-header">
+    <div>
+      <p class="dashboard-subtitle">Master Insight Center</p>
+      <h1>School Master Analytics</h1>
+    </div>
+  </div>
+
+  <div class="report-selector" *ngIf="!loading">
+    <label for="metricSelect">Select component report</label>
+    <select id="metricSelect" [(ngModel)]="selectedMetric" (change)="changeMetric(selectedMetric)">
+      <option value="boards">Boards Report</option>
+      <option value="schools">School Report</option>
+      <option value="classes">Class Report</option>
+      <option value="streams">Stream Report</option>
+      <option value="specializations">Specialization Report</option>
+      <option value="students">Student Report</option>
+    </select>
+    <div class="report-actions">
+      <button class="report-action" (click)="exportPdf()" [disabled]="loading || !reportRows.length">
+        <i class="bi bi-filetype-pdf"></i> Export PDF
+      </button>
+      <button class="report-action" (click)="exportExcel()" [disabled]="loading || !reportRows.length">
+        <i class="bi bi-file-earmark-spreadsheet"></i> Export Excel
+      </button>
+    </div>
+  </div>
+
+  <div class="overview-row" *ngIf="!loading">
+    <div class="overview-card">
+      <span class="overview-label">Total {{ metricLabels[selectedMetric] }}</span>
+      <strong>{{ getSelectedCount() }}</strong>
+      <p>Active and live in the current filters.</p>
+    </div>
+    <div class="overview-card overview-card--positive">
+      <span class="overview-label">Added this period</span>
+      <strong>{{ addedThisPeriod }}</strong>
+      <p>Items created in the selected range.</p>
+    </div>
+    <div class="overview-card overview-card--negative">
+      <span class="overview-label">Removed this period</span>
+      <strong>{{ getDeletionCount() }}</strong>
+      <p>Deleted or deactivated items.</p>
+    </div>
+    <div class="overview-card overview-card--trend">
+      <span class="overview-label">Trend</span>
+      <strong>{{ chartGrowth >= 0 ? '+' : '' }}{{ chartGrowth }}%</strong>
+      <p>{{ chartGrowth >= 0 ? 'Rising' : 'Falling' }} over the selected range.</p>
+    </div>
+  </div>
+
+  <div class="report-grid" *ngIf="!loading">
+    <article class="panel chart-panel">
+      <div class="panel__heading">
+        <div>
+          <p class="eyebrow">HISTORY CHART</p>
+          <h2>{{ metricLabels[selectedMetric] }} trend</h2>
+        </div>
+        <div class="chart-controls">
+          <button [class.active]="selectedChartKind === 'bar'" (click)="selectedChartKind = 'bar'">Bar</button>
+          <button [class.active]="selectedChartKind === 'line'" (click)="selectedChartKind = 'line'">Line</button>
+          <button [class.active]="selectedPeriod === 'days'" (click)="changePeriod('days')">7d</button>
+          <button [class.active]="selectedPeriod === 'weeks'" (click)="changePeriod('weeks')">8w</button>
+          <button [class.active]="selectedPeriod === 'months'" (click)="changePeriod('months')">6m</button>
+        </div>
+      </div>
+      <div class="chart chart--dynamic" *ngIf="chartData.length">
+        <div class="chart__labels"><span>{{ chartMax }}</span><span>{{ chartMid }}</span><span>0</span></div>
+        <div class="chart__area">
+          <ng-container *ngIf="selectedChartKind === 'bar'">
+            <div class="chart__bar-group">
+              <div *ngFor="let item of chartData" class="chart__bar-column">
+                <div class="chart__bar" [style.height]="barFill(item.count) + '%'">
+                  <span class="chart__tooltip">
+                    <strong>{{ item.label }}</strong>
+                    <span>{{ item.count }} entries</span>
+                  </span>
+                </div>
+                <span class="chart__bar-label">{{ item.label }}</span>
+              </div>
+            </div>
+          </ng-container>
+          <ng-container *ngIf="selectedChartKind === 'line'">
+            <div class="line-plot">
+              <div class="line-grid" *ngFor="let point of chartData; let i = index" [style.left.%]="(i / (chartData.length - 1)) * 100">
+                <span class="line-dot" [style.bottom.%]="linePoint(point.count)"></span>
+                <span class="line-label">{{ point.count }}</span>
+              </div>
+              <svg class="line-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <polyline [attr.points]="lineSvgPoints()" fill="none" stroke="var(--brass)" stroke-width="2" />
+              </svg>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+      <div class="chart-footer">
+        <span>{{ chartLabel(selectedMetric) }} performance over the chosen range</span>
+        <strong>{{ chartGrowth >= 0 ? '+' : '' }}{{ chartGrowth }}%</strong>
+      </div>
+    </article>
+
+    <article class="panel pie-panel">
+      <div class="panel__heading">
+        <div>
+          <p class="eyebrow">PIE ANALYSIS</p>
+          <h2>Active vs Inactive</h2>
+        </div>
+      </div>
+      <div class="pie-summary">
+        <div class="pie-chart" [style.background]="pieChartBackground()">
+          <span>{{ getSelectedCount() }}</span>
+        </div>
+        <div class="pie-legend">
+          <div *ngFor="let slice of pieSlices" class="legend-row">
+            <span class="legend-swatch" [style.background]="slice.color"></span>
+            <span>{{ slice.label }}</span>
+            <strong>{{ slice.value }}</strong>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="panel history-panel">
+      <div class="panel__heading">
+        <div>
+          <p class="eyebrow">EVENT HISTORY</p>
+          <h2>{{ metricLabels[selectedMetric] }} changes</h2>
+        </div>
+      </div>
+      <div class="history-list">
+        <div *ngFor="let item of historyRows" class="history-row" [class.history-down]="item.trend === 'down'">
+          <span class="history-chip">{{ item.trend === 'up' ? 'Added' : 'Deleted' }}</span>
+          <div>
+            <strong>{{ item.label }}</strong>
+          </div>
+          <span class="history-value">{{ item.trend === 'up' ? '+' : '-' }}1</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="panel table-panel">
+      <div class="panel__heading">
+        <div>
+          <p class="eyebrow">DETAILS</p>
+          <h2>{{ metricLabels[selectedMetric] }} overview</h2>
+        </div>
+      </div>
+      <div class="report-table">
+        <div class="report-row report-header">
+          <span>Title</span>
+          <span>Context</span>
+          <span>Added</span>
+        </div>
+        <div *ngFor="let row of reportRows" class="report-row">
+          <span>{{ row.title }}</span>
+          <span>{{ row.subtitle }}</span>
+          <span>{{ row.extra }}</span>
+        </div>
+      </div>
+    </article>
+  </div>
+</div>

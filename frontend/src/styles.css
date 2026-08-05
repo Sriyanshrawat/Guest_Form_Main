@@ -1,0 +1,316 @@
+@import 'bootstrap-icons/font/bootstrap-icons.css';
+@import 'ag-grid-community/styles/ag-grid.css';
+@import 'ag-grid-community/styles/ag-theme-quartz.css';
+
+
+
+:root {
+  /* Color */
+  --ink-900: #10151c;
+  --ink-800: #1a2029;
+  --ink-700: #262e3a;
+  --ink-600: #384254;
+  --paper: #ece7da;
+  --paper-dim: #d9d3c2;
+  --brass: #c6963c;
+  --brass-light: #e2b563;
+  --steel: #6f97b3;
+  --rust: #b1543a;
+  --sage: #7a9b76;
+  --ink-text: #1c1a15;
+  --paper-text-dim: #6b6455;
+
+  /* Type */
+  --font-display: 'Source Serif 4', Georgia, serif;
+  --font-body: 'Inter', -apple-system, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+
+  /* Layout */
+  --radius: 4px;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--ink-900);
+  color: var(--paper);
+  font-family: var(--font-body);
+  min-height: 100vh;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+::selection {
+  background: var(--brass);
+  color: var(--ink-900);
+}
+
+body.dark-mode {
+  --paper: #111827;
+  --paper-dim: #1f2937;
+  --ink-text: #e5e7eb;
+  --paper-text-dim: #94a3b8;
+  background: #0b1120;
+  color: #e5e7eb;
+}
+
+body.dark-mode .app-shell,
+body.dark-mode .app-shell__content,
+body.dark-mode .stage,
+body.dark-mode .education-board,
+body.dark-mode .school-page,
+body.dark-mode .dashboard,
+body.dark-mode .guest-page {
+  background: #111827 !important;
+  color: #e5e7eb !important;
+}
+
+body.dark-mode .topbar__actions {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+  color: #e5e7eb !important;
+}
+
+body.dark-mode .sidebar {
+  background: linear-gradient(180deg, #0b1120, #111827) !important;
+  border-color: #334155 !important;
+}
+
+body.dark-mode .education-board__card,
+body.dark-mode .school-card,
+body.dark-mode .form-card,
+body.dark-mode .auth-card,
+body.dark-mode .stat-card,
+body.dark-mode .table-container,
+body.dark-mode .guest-table-container,
+body.dark-mode .topbar__user,
+body.dark-mode .theme-toggle,
+body.dark-mode .logout-btn {
+  background: #1f2937 !important;
+  border-color: #475569 !important;
+  color: #e5e7eb !important;
+  box-shadow: none !important;
+}
+
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode label,
+body.dark-mode th,
+body.dark-mode td,
+body.dark-mode .education-board__sub,
+body.dark-mode .school-page__sub,
+body.dark-mode .dashboard-description,
+body.dark-mode .dashboard-subtitle,
+body.dark-mode .school-card p,
+body.dark-mode .education-board__card-title p {
+  color: #cbd5e1 !important;
+}
+
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea,
+body.dark-mode .search-box {
+  background: #0f172a !important;
+  border-color: #475569 !important;
+  color: #f8fafc !important;
+}
+
+body.dark-mode input::placeholder,
+body.dark-mode textarea::placeholder { color: #94a3b8 !important; }
+
+body.dark-mode table,
+body.dark-mode thead th,
+body.dark-mode tbody td,
+body.dark-mode .school-table-wrap {
+  background: #1f2937 !important;
+  border-color: #475569 !important;
+  color: #e5e7eb !important;
+}
+
+body.dark-mode .auth-page,
+body.dark-mode .auth-stage {
+  background: radial-gradient(circle at top left, #1e3a5f, transparent 36%), #0b1120 !important;
+}
+
+:focus-visible {
+  outline: 2px solid var(--brass-light);
+  outline-offset: 2px;
+}
+
+@media (min-width: 901px) {
+  app-dashboard .configure-button {
+    margin-right: 18rem;
+  }
+}
+
+/* Dashboard scrollbar */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: #a17835 #eee7d8;
+}
+
+*::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #eee7d8;
+  border-left: 4px solid #faf7f0;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #c99a4f, #8b672b);
+  border: 3px solid #eee7d8;
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #765320;
+}
+
+body.dark-mode {
+  scrollbar-color: #8f6e35 #1f2937;
+}
+
+body.dark-mode *::-webkit-scrollbar-track {
+  background: #1f2937;
+  border-color: #111827;
+}
+
+body.dark-mode *::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #b38b4e, #795b2d);
+  border-color: #1f2937;
+}
+
+/* Shared AG Grid table treatment: headers plus a compact filter row beneath. */
+.ag-theme-quartz {
+  --ag-font-family: var(--font-body);
+  --ag-font-size: 0.88rem;
+  --ag-background-color: #fff;
+  --ag-foreground-color: #1c1a15;
+  --ag-header-background-color: #f8f7f4;
+  --ag-header-foreground-color: #4b5563;
+  --ag-border-color: #e5e7eb;
+  --ag-row-border-color: #eceff3;
+  --ag-header-column-separator-color: #d9dee6;
+  --ag-input-border-color: #d3d9e2;
+  --ag-input-focus-border-color: #c6963c;
+  --ag-row-hover-color: #fffaf0;
+  --ag-selected-row-background-color: #fff5dc;
+  --ag-odd-row-background-color: #fbf9f4;
+  --ag-border-radius: 0;
+}
+.ag-theme-quartz .ag-header-cell-label { font-size:.71rem; font-weight:700; letter-spacing:.05em; text-transform:uppercase; }
+.ag-theme-quartz .ag-floating-filter-input { border-radius:5px; min-height:28px; }
+.app-filter-grid .ag-cell { font-weight:700; }
+.filter-grid-actions { height:100%; display:flex; align-items:center; gap:.5rem; }
+.filter-grid-action {
+  display:inline-flex; align-items:center; justify-content:center; gap:.4rem;
+  padding:.5rem .85rem; border:1px solid var(--rule-strong,#cbd5e1); border-radius:8px;
+  color:var(--ink-soft,#4b5563); background:var(--surface,#fff); cursor:pointer;
+  font:700 .82rem 'Inter',sans-serif; transition:all .12s ease;
+}
+.filter-grid-action:hover { border-color:var(--ink-faint,#64748b); color:var(--ink,#111827); background:var(--paper,#f8fafc); }
+.filter-grid-action.danger { color:var(--error,#b91c1c); border-color:#f3cfc9; }
+.filter-grid-action.danger:hover { background:var(--error-bg,#fff1f0); border-color:var(--error,#b91c1c); }
+
+/* Student grid renderers are created by AG Grid, so their styles must be global. */
+.grid-actions { height:100%; display:flex; align-items:center; justify-content:center; gap:.35rem; white-space:nowrap; transform:translateX(-6px); }
+.grid-action {
+  display:inline-flex; align-items:center; justify-content:center; gap:.4rem;
+  padding:.45rem .5rem; border:1px solid #ddcfad; border-radius:8px;
+  color:#445b7d; background:#fff; cursor:pointer;
+  font:700 .82rem 'Inter',sans-serif; line-height:1.1; transition:all .12s ease;
+}
+.grid-action:hover { border-color:#bba16d; color:#314b70; background:#fffdf9; }
+.grid-action.delete { color:#c8382d; border-color:#f5c8c3; }
+.grid-action.delete:hover { background:#fff7f6; border-color:#e88f87; }
+
+/* Consistent action buttons for every data table. */
+td.actions button, td.table-actions button, .actions__content button, .filter-grid-action, .grid-action, .view-btn, .edit-btn, .delete-btn, .table-button {
+  display:inline-flex !important; align-items:center !important; justify-content:center !important; gap:.4rem !important;
+  padding:.55rem .9rem !important; border:1px solid #cfd7e5 !important; border-radius:9px !important;
+  background:#f3f5fa !important; color:#31456e !important; font:700 .86rem 'Inter',sans-serif !important;
+  line-height:1.1 !important; cursor:pointer;
+}
+td.actions button:hover, td.table-actions button:hover, .actions__content button:hover, .filter-grid-action:hover, .grid-action:hover, .edit-btn:hover, .table-button:hover {
+  background:#e9edf6 !important; border-color:#aebbd0 !important; color:#263a61 !important;
+}
+.view-btn, .grid-action[data-action="view"] {
+  background:#f6eedc !important; border-color:#dfcfaa !important; color:#896626 !important;
+}
+.view-btn:hover, .grid-action[data-action="view"]:hover { background:#f1e5ca !important; border-color:#cdb782 !important; color:#74531b !important; }
+td.actions button.delete, td.table-actions button.delete, .actions__content button.delete, .filter-grid-action.danger, .grid-action.delete, .delete-btn, .table-button--delete {
+  background:#fff0ef !important; border-color:#edb6b0 !important; color:#b63d34 !important;
+}
+td.actions button.delete:hover, td.table-actions button.delete:hover, .actions__content button.delete:hover, .filter-grid-action.danger:hover, .grid-action.delete:hover, .delete-btn:hover, .table-button--delete:hover { background:#fde2df !important; border-color:#dd8a82 !important; color:#9e2c25 !important; }
+
+/* The Student Form has three actions in one AG Grid cell; keep them compact. */
+.grid-actions .grid-action {
+  padding:.45rem .42rem !important;
+  gap:.28rem !important;
+  font-size:.78rem !important;
+}
+body.dark-mode .ag-theme-quartz { --ag-background-color:#1f2937; --ag-foreground-color:#e5e7eb; --ag-header-background-color:#182235; --ag-header-foreground-color:#cbd5e1; --ag-border-color:#475569; --ag-row-border-color:#334155; --ag-input-border-color:#475569; --ag-row-hover-color:#263449; }
+
+/* Rich student-grid cell renderers (AG Grid creates these DOM nodes outside
+   Angular component styles, so they must live here in global CSS). */
+.grid-student-cell { display:flex; align-items:center; gap:.75rem; height:100%; }
+.grid-avatar { width:2.3rem; height:2.3rem; flex-shrink:0; border-radius:9px; display:flex; align-items:center; justify-content:center; color:#fff; font-family:'Source Serif 4',Georgia,serif; font-weight:600; font-size:.8rem; box-shadow:0 1px 2px rgba(28,35,51,.14); }
+.grid-student-info { display:flex; flex-direction:column; gap:.12rem; line-height:1.25; min-width:0; }
+.grid-student-info strong { color:var(--ink,#1c2333); font-size:.85rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.grid-student-info small { color:var(--ink-faint,#8b93a7); font-size:.73rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+.grid-badge { display:inline-flex; align-items:center; gap:.3rem; padding:.2rem .6rem; border-radius:20px; font-size:.73rem; font-weight:700; white-space:nowrap; }
+.grid-badge i { font-size:.7rem; }
+.grid-badge-male { background:#dbeafe; color:#1e40af; border:1px solid #bfdbfe; }
+.grid-badge-female { background:#fce7f3; color:#9d174d; border:1px solid #fbcfe8; }
+.grid-badge-other { background:#e0e7ff; color:#4338ca; border:1px solid #c7d2fe; }
+.grid-badge-class { background:#ede9fe; color:#6d28d9; border:1px solid #ddd6fe; }
+
+.grid-guardian-info { display:flex; flex-direction:column; gap:.12rem; line-height:1.25; min-width:0; }
+.grid-guardian-info strong { color:var(--ink,#1c2333); font-size:.84rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.grid-guardian-info small { font-size:.76rem; }
+.grid-guardian-line { display:flex; align-items:center; gap:.35rem; font-size:.8rem; font-weight:600; color:var(--ink,#1c2333); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.grid-guardian-line i { font-size:.72rem; color:var(--ink-soft,#5b6478); flex:none; }
+.grid-mono { font-family:'IBM Plex Mono',monospace; font-size:.8rem; color:var(--ink-soft,#5b6478); }
+
+body.dark-mode .grid-student-info strong,
+body.dark-mode .grid-guardian-info strong { color:#e5e7eb; }
+body.dark-mode .grid-student-info small,
+body.dark-mode .grid-guardian-info small,
+body.dark-mode .grid-mono { color:#94a3b8; }
+
+/* Grid action buttons — match the report page's colored action buttons. */
+.grid-actions .grid-action {
+  padding:.38rem .55rem !important;
+  gap:.3rem !important;
+  font-size:.75rem !important;
+  line-height:1.15 !important;
+}
+.grid-actions .grid-action i { font-size:.8rem; }
+.grid-actions .grid-action[data-action="view"] { background:#f6eedc !important; border-color:#dfcfaa !important; color:#8a6520 !important; }
+.grid-actions .grid-action[data-action="view"]:hover { background:#96702f !important; color:#fff !important; border-color:#96702f !important; }
+.grid-actions .grid-action[data-action="edit"] { background:#eef0f7 !important; border-color:#cfd7e5 !important; color:#2e3a5f !important; }
+.grid-actions .grid-action[data-action="edit"]:hover { background:#2e3a5f !important; color:#fff !important; border-color:#2e3a5f !important; }
+.grid-actions .grid-action[data-action="delete"], .grid-actions .grid-action.delete { background:#fbeeec !important; border-color:#f3cfc9 !important; color:#9c3b34 !important; }
+.grid-actions .grid-action[data-action="delete"]:hover, .grid-actions .grid-action.delete:hover { background:#9c3b34 !important; color:#fff !important; border-color:#9c3b34 !important; }
+
+/* Center the student form table's cell content. */
+.student-grid .ag-cell { text-align: center; }
+.student-grid .ag-cell .grid-student-cell,
+.student-grid .ag-cell .grid-guardian-info,
+.student-grid .ag-cell .grid-actions { justify-content: center; }
+.student-grid .ag-header-cell-label { justify-content: center; }

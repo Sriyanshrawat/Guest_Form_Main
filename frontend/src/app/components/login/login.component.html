@@ -1,0 +1,36 @@
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-card__hero">
+      <div class="auth-card__badge">Aadishri School ERP</div>
+      <p class="auth-card__eyebrow">Secure School Access</p>
+      <h2 class="auth-card__title">Sign In</h2>
+      <p class="auth-card__subtitle">Sign in to manage admissions, academic records, and school operations.</p>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+      <div class="field">
+        <label for="username">Username</label>
+        <input id="username" type="text" formControlName="username" autocomplete="username" />
+        <small class="error" *ngIf="f['username'].touched && f['username'].invalid">Username is required.</small>
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <input id="password" type="password" formControlName="password" autocomplete="current-password" />
+        <small class="error" *ngIf="f['password'].touched && f['password'].invalid">Password is required.</small>
+      </div>
+
+      <app-captcha (valueChange)="captcha = $event"></app-captcha>
+
+      <button type="submit" class="stamp-btn" [disabled]="submitting">
+        {{ submitting ? 'Signing in...' : 'Sign In' }}
+      </button>
+
+      <p class="error error--message" *ngIf="errorMessage">{{ errorMessage }}</p>
+    </form>
+
+    <p class="auth-card__switch">
+      Don't have an account? <a routerLink="/signup">Create one</a>
+    </p>
+  </div>
+</div>

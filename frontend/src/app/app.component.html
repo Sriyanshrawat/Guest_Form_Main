@@ -1,0 +1,318 @@
+<div class="app-shell" *ngIf="showShell(); else authOnly">
+  <aside class="sidebar" *ngIf="showSidebar()">
+    <div class="sidebar__brand">
+      <div class="sidebar__brand-mark" aria-hidden="true">
+        <i class="bi bi-mortarboard-fill"></i>
+      </div>
+      <div class="sidebar__brand-text">
+        <span class="sidebar__brand-kicker">{{ authService.isAdmin() ? 'Administration' : 'Student Portal' }}</span>
+        <strong>School</strong>
+        <span class="sidebar__brand-subtitle">Education ERP</span>
+      </div>
+    </div>
+
+    <ng-container *ngIf="authService.isAdmin()">
+      <a routerLink="/dashboard" routerLinkActive="sidebar__item--active" class="sidebar__item">
+        <i class="bi bi-grid-1x2-fill"></i>
+        <span>Overview</span>
+      </a>
+
+      <button
+        class="sidebar__item sidebar__item--master"
+        type="button"
+        (click)="toggleMaster()"
+      >
+        <i class="bi bi-gear"></i>
+        <span>Master</span>
+        <i
+          class="bi bi-chevron-down sidebar__chevron"
+          [class.sidebar__chevron--open]="masterOpen"
+        ></i>
+      </button>
+
+      <div class="sidebar__submenu" *ngIf="masterOpen">
+      <a
+        routerLink="/education-board"
+        routerLinkActive="sidebar__submenu-link--active"
+        class="sidebar__submenu-link"
+      >
+        <i class="bi bi-mortarboard-fill"></i>
+        <span>Board Name</span>
+      </a>
+      <a
+        routerLink="/school"
+        routerLinkActive="sidebar__submenu-link--active"
+        class="sidebar__submenu-link"
+      >
+        <i class="bi bi-building"></i>
+        <span>School</span>
+      </a>
+
+        <a
+        routerLink="/sessions"
+        routerLinkActive="sidebar__submenu-link--active"
+        class="sidebar__submenu-link"
+      >
+        <i class="bi bi-calendar-event"></i>
+        <span>Sessions</span>
+      </a>
+
+      <a
+        routerLink="/classes"
+        routerLinkActive="sidebar__submenu-link--active"
+        class="sidebar__submenu-link"
+      >
+        <i class="bi bi-journal-bookmark"></i>
+        <span>Classes</span>
+      </a>
+
+      <a
+        routerLink="/streams"
+        routerLinkActive="sidebar__submenu-link--active"
+        class="sidebar__submenu-link"
+      >
+        <i class="bi bi-diagram-3"></i>
+        <span>Streams</span>
+      </a>
+      <!-- <a
+        routerLink="/master-report"
+        routerLinkActive="sidebar__submenu-link--active"
+        class="sidebar__submenu-link"
+      >
+        <i class="bi bi-bar-chart-fill"></i>
+        <span>Master Report</span>
+      </a> -->
+      <a
+        routerLink="/specializations"
+        routerLinkActive="sidebar__submenu-link--active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        class="sidebar__submenu-link"
+      >
+        <i class="bi bi-bookmark-star"></i>
+        <span>Specializations</span>
+      </a>
+      <a
+        routerLink="/specializations/full-configuration"
+        routerLinkActive="sidebar__submenu-link--active"
+        class="sidebar__submenu-link sidebar__submenu-link--nested"
+      >
+        <i class="bi bi-diagram-3"></i>
+        <span>Full Configuration</span>
+      </a>
+      </div>
+
+
+       <a
+        routerLink="/master-report"
+        routerLinkActive="sidebar__submenu-link--active"
+        class="sidebar__submenu-link"
+      >
+        <i class="bi bi-bar-chart-fill"></i>
+        <span>Master Report</span>
+      </a>
+
+
+       <a
+      routerLink="/submit"
+      routerLinkActive="sidebar__item--active"
+      class="sidebar__item"
+    >
+      <i class="bi bi-person-vcard-fill"></i>
+      <span>Student </span>
+    </a>
+
+      <a class="sidebar__item" routerLink="/admin" routerLinkActive="sidebar__item--active">
+        <i class="bi bi-card-list"></i>
+        <span>Report</span>
+      </a>
+    </ng-container>
+
+    <!-- <a
+      routerLink="/submit"
+      routerLinkActive="sidebar__item--active"
+      class="sidebar__item"
+    >
+      <i class="bi bi-person-vcard-fill"></i>
+      <span>Student </span>
+    </a> -->
+  </aside>
+
+  <section class="app-shell__content">
+    <header class="topbar" *ngIf="authService.currentUser$ | async as user">
+      <div class="topbar__actions">
+        <button
+          class="theme-toggle"
+          type="button"
+          (click)="toggleTheme()"
+          [attr.aria-label]="
+            isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'
+          "
+        >
+          <i
+            [class]="isDarkMode ? 'bi bi-sun-fill' : 'bi bi-moon-stars-fill'"
+          ></i>
+          {{ isDarkMode ? "Light" : "Dark" }}
+        </button>
+
+        <div class="profile" #profileWrap>
+          <button
+            class="profile__trigger"
+            type="button"
+            (click)="toggleProfile()"
+            aria-haspopup="menu"
+            [attr.aria-expanded]="profileOpen"
+          >
+            <span
+              class="profile__avatar"
+              [style.background]="avatarColor(profileInitials(user))"
+              >{{ profileInitials(user) }}</span
+            >
+            <span class="profile__meta">
+              <strong>{{ user.username }}</strong>
+              <span>{{ roleLabel(user) }}</span>
+            </span>
+            <i
+              class="bi bi-chevron-down profile__chevron"
+              [class.profile__chevron--open]="profileOpen"
+            ></i>
+          </button>
+
+          <div class="profile__menu" *ngIf="profileOpen" role="menu">
+            <div class="profile__menu-header">
+              <span
+                class="profile__avatar profile__avatar--lg"
+                [style.background]="avatarColor(profileInitials(user))"
+                >{{ profileInitials(user) }}</span
+              >
+              <div class="profile__menu-id">
+                <strong>{{ user.username }}</strong>
+                <span class="profile__menu-role">{{ roleLabel(user) }}</span>
+              </div>
+            </div>
+
+            <dl class="profile__details">
+              <div class="profile__detail">
+                <dt>Account</dt>
+                <dd>{{ user.username }}</dd>
+              </div>
+              <div class="profile__detail">
+                <dt>Role</dt>
+                <dd>{{ roleLabel(user) }}</dd>
+              </div>
+            </dl>
+
+            <button
+              class="profile__menu-item"
+              type="button"
+              (click)="openPasswordModal()"
+            >
+              <i class="bi bi-key"></i> Change Password
+            </button>
+
+            <button
+              class="profile__menu-item profile__menu-item--danger"
+              type="button"
+              (click)="logout()"
+            >
+              <i class="bi bi-box-arrow-right"></i> Sign Out
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="stage">
+      <router-outlet />
+    </main>
+  </section>
+</div>
+
+<!-- Change Password modal -->
+<div
+  class="password-modal"
+  *ngIf="passwordModalOpen"
+  (click)="closePasswordModal()"
+>
+  <div
+    class="password-modal__dialog"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="password-modal-title"
+    (click)="$event.stopPropagation()"
+  >
+    <header class="password-modal__header">
+      <div>
+        <h2 id="password-modal-title">Change Password</h2>
+        <p>Update the password for your {{ roleLabel(authService.currentUser!) }} account.</p>
+      </div>
+      <button
+        class="password-modal__close"
+        type="button"
+        (click)="closePasswordModal()"
+        [attr.aria-label]="'Close'"
+      >
+        &times;
+      </button>
+    </header>
+
+    <form class="password-modal__body" [formGroup]="passwordForm" (ngSubmit)="changePassword()">
+      <p
+        class="password-modal__msg"
+        *ngIf="passwordMessage"
+        [class.password-modal__msg--error]="passwordMessageType === 'error'"
+        [class.password-modal__msg--success]="passwordMessageType === 'success'"
+      >
+        {{ passwordMessage }}
+      </p>
+
+      <label class="password-modal__field">
+        <span>Current password</span>
+        <input type="password" formControlName="currentPassword" autocomplete="current-password" />
+      </label>
+
+      <label class="password-modal__field">
+        <span>New password</span>
+        <input type="password" formControlName="newPassword" autocomplete="new-password" />
+      </label>
+
+      <label class="password-modal__field">
+        <span>Confirm new password</span>
+        <input type="password" formControlName="confirmPassword" autocomplete="new-password" />
+      </label>
+
+      <div class="password-modal__actions">
+        <button
+          class="password-modal__btn password-modal__btn--ghost"
+          type="button"
+          (click)="closePasswordModal()"
+        >
+          Cancel
+        </button>
+        <button
+          class="password-modal__btn password-modal__btn--primary"
+          type="submit"
+          [disabled]="passwordSubmitting"
+        >
+          {{ passwordSubmitting ? 'Saving...' : 'Save Password' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<ng-template #authOnly>
+  <main class="auth-stage">
+    <button
+      class="theme-toggle theme-toggle--auth"
+      type="button"
+      (click)="toggleTheme()"
+      [attr.aria-label]="
+        isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'
+      "
+    >
+      <i [class]="isDarkMode ? 'bi bi-sun-fill' : 'bi bi-moon-stars-fill'"></i>
+      {{ isDarkMode ? "Light" : "Dark" }}
+    </button>
+    <router-outlet />
+  </main>
+</ng-template>

@@ -1,0 +1,194 @@
+<section class="lookup-page">
+  <header class="lookup-page__heading">
+    <div>
+      <span class="lookup-page__eyebrow">Master · configuration</span>
+      <h1>Full Configuration</h1>
+    </div>
+    <span class="lookup-page__badge"><i class="bi bi-diagram-3"></i> Board → Session → School → Class</span>
+  </header>
+
+  <div class="lookup-card">
+    <div class="lookup-card__title">
+      <span class="lookup-icon"><i class="bi bi-funnel"></i></span>
+      <div>
+        <h2>Dependent filters</h2>
+      </div>
+    </div>
+
+    <div class="lookup-form">
+      <label>
+        <span>Board name <b>*</b></span>
+        <select [(ngModel)]="selectedBoardId" name="boardId" (change)="onBoardChange()" [disabled]="loading.boards">
+          <option [ngValue]="null" disabled>{{ loading.boards ? 'Loading boards&hellip;' : 'Select a board' }}</option>
+          <option *ngFor="let b of boards" [ngValue]="b.id">{{ b.name }}</option>
+        </select>
+      </label>
+
+      <label>
+        <span>Session <b>*</b></span>
+        <select [(ngModel)]="selectedSessionId" name="sessionId" (change)="onSessionChange()" [disabled]="selectedBoardId == null || loading.sessions">
+          <option [ngValue]="null" disabled>{{ selectedBoardId == null ? 'Pick a board first' : (loading.sessions ? 'Loading sessions&hellip;' : 'Select a session') }}</option>
+          <option *ngFor="let s of sessions" [ngValue]="s.id">{{ s.name }}</option>
+        </select>
+      </label>
+
+      <label>
+        <span>School</span>
+        <select [(ngModel)]="selectedSchoolId" name="schoolId" (change)="onSchoolChange()" [disabled]="selectedSessionId == null || loading.schools">
+          <option [ngValue]="null" disabled>{{ selectedSessionId == null ? 'Pick a session first' : (loading.schools ? 'Loading schools&hellip;' : 'Select a school') }}</option>
+          <option *ngFor="let s of schools" [ngValue]="s.id">{{ s.name }}</option>
+        </select>
+      </label>
+
+      <label>
+        <span>Class</span>
+        <select [(ngModel)]="selectedClassId" name="classId" (change)="onClassChange()" [disabled]="selectedSchoolId == null || loading.classes">
+          <option [ngValue]="null" disabled>{{ selectedSchoolId == null ? 'Pick a school first' : (loading.classes ? 'Loading classes&hellip;' : 'Select a class') }}</option>
+          <option *ngFor="let c of classes" [ngValue]="c.id">{{ c.name }}<ng-container *ngIf="c.subtitle"> &mdash; {{ c.subtitle }}</ng-container></option>
+        </select>
+      </label>
+    </div>
+
+    <div class="lookup-card__actions">
+      <button type="button" class="button button--quiet" (click)="reset()"><i class="bi bi-arrow-counterclockwise"></i> Reset</button>
+    </div>
+
+    <p class="notice notice--error" *ngIf="errorMessage">
+      <i class="bi bi-exclamation-circle"></i>{{ errorMessage }}
+    </p>
+  </div>
+
+  <div class="lookup-card lookup-card--details" *ngIf="loading.details">
+    <div class="lookup-card__title">
+      <span class="lookup-icon"><i class="bi bi-hourglass-split"></i></span>
+      <div>
+        <h2>Loading details&hellip;</h2>
+        <p>Fetching the metadata for the selected class.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="lookup-card lookup-card--details" *ngIf="!loading.details && details as d">
+    <div class="lookup-card__title">
+      <span class="lookup-icon"><i class="bi bi-card-checklist"></i></span>
+      <div>
+        <h2>Auto-populated details</h2>
+        <p>Sourced from module data for <strong>{{ d.className }} &mdash; {{ d.classSection }}</strong>.</p>
+      </div>
+    </div>
+
+    <div class="details-grid">
+      <div class="detail-tile">
+        <span class="detail-tile__label">Session</span>
+        <strong>{{ d.sessionName }}</strong>
+      </div>
+      <div class="detail-tile">
+        <span class="detail-tile__label">Board</span>
+        <strong>{{ d.boardName }}</strong>
+      </div>
+      <div class="detail-tile">
+        <span class="detail-tile__label">School</span>
+        <strong>{{ d.schoolName }}</strong>
+      </div>
+      <div class="detail-tile">
+        <span class="detail-tile__label">Class</span>
+        <strong>{{ d.className }} &mdash; {{ d.classSection }}</strong>
+      </div>
+    </div>
+
+    <div class="details-subgrid">
+      <div class="detail-block">
+        <h3><i class="bi bi-diagram-3"></i> Streams ({{ d.streams.length }})</h3>
+        <ul *ngIf="d.streams.length; else noStreams">
+          <li *ngFor="let s of d.streams">
+            <span>{{ s.name }}</span>
+            <code *ngIf="s.subtitle">{{ s.subtitle }}</code>
+          </li>
+        </ul>
+        <ng-template #noStreams><p class="muted">No streams linked to this class yet.</p></ng-template>
+      </div>
+
+      <div class="detail-block">
+        <h3><i class="bi bi-bookmark-star"></i> Specializations ({{ d.specializations.length }})</h3>
+        <ul *ngIf="d.specializations.length; else noSpecs">
+          <li *ngFor="let s of d.specializations"><span>{{ s.name }}</span></li>
+        </ul>
+        <ng-template #noSpecs><p class="muted">No specializations defined for this class yet.</p></ng-template>
+      </div>
+    </div>
+
+    <div class="lookup-card__actions lookup-card__actions--save">
+      <p class="notice notice--error" *ngIf="saveErrorMessage">
+        <i class="bi bi-exclamation-circle"></i>{{ saveErrorMessage }}
+      </p>
+      <button type="button" class="button button--primary" (click)="onSave()" [disabled]="saving"><i class="bi bi-floppy"></i> {{ saving ? 'Saving&hellip;' : editingConfigId ? 'Update Configuration' : 'Save Configuration' }}</button>
+    </div>
+  </div>
+
+  <p class="notice notice--success" *ngIf="savedSuccess"><i class="bi bi-check-circle"></i>{{ savedSuccess }}</p>
+
+  <div class="lookup-card lookup-card--table">
+    <div class="lookup-card__title">
+      <span class="lookup-icon"><i class="bi bi-table"></i></span>
+      <div>
+        <h2>Saved Configurations</h2>
+        <p>Previously saved board&ndash;session&ndash;school&ndash;class mappings.</p>
+      </div>
+    </div>
+
+    <table class="config-table" *ngIf="savedConfigs.length; else noSaved">
+      <thead>
+        <tr>
+          <th>Board</th>
+          <th>Session</th>
+          <th>School</th>
+          <th>Class</th>
+          <th>Specializations</th>
+          <th>Streams</th>
+          <th class="action-column">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let c of savedConfigs">
+          <td>{{ c.boardName }}</td>
+          <td>{{ c.sessionName }}</td>
+          <td>{{ c.schoolName }}</td>
+          <td>{{ c.className }} &mdash; {{ c.classSection }}</td>
+          <td>
+            <ng-container *ngIf="configValues(c.specializations) as specItems">
+              <div class="config-values" *ngIf="specItems.length; else noSavedSpecializations">
+                <span class="config-value config-value--specialization" *ngFor="let item of specItems" [title]="item">{{ item }}</span>
+              </div>
+            </ng-container>
+            <ng-template #noSavedSpecializations><span class="config-empty">&mdash;</span></ng-template>
+          </td>
+          <td>
+            <ng-container *ngIf="configValues(c.streams) as streamItems">
+              <div class="config-values" *ngIf="streamItems.length; else noSavedStreams">
+                <span class="config-value config-value--stream" *ngFor="let item of streamItems" [title]="item">{{ item }}</span>
+              </div>
+            </ng-container>
+            <ng-template #noSavedStreams><span class="config-empty">&mdash;</span></ng-template>
+          </td>
+          <td class="actions">
+            <div class="actions__content">
+              <button type="button" (click)="editConfiguration(c)"><i class="bi bi-pencil"></i><span>Edit</span></button>
+              <button type="button" class="delete" (click)="deleteConfiguration(c)"><i class="bi bi-trash3"></i><span>Delete</span></button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <ng-template #noSaved><p class="muted">No configurations saved yet.</p></ng-template>
+  </div>
+
+  <div class="lookup-card lookup-card--empty" *ngIf="!loading.details && !details">
+    <div class="lookup-card__title">
+      <span class="lookup-icon"><i class="bi bi-arrow-down-circle"></i></span>
+      <div>
+        <h2>Details will appear here</h2>
+        <p>Complete all four dropdowns to fetch the metadata for the selected class.</p>
+      </div>
+    </div>
+  </div>
+</section>

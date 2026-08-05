@@ -1,0 +1,227 @@
+<section class="dashboard">
+  <header class="welcome">
+    <div>
+      <p class="eyebrow">DASHBOARD</p>
+      <h1>Overview</h1>
+    </div>
+  </header>
+
+  <div *ngIf="loading" class="loading-indicator">
+    <i class="bi bi-arrow-repeat spinning"></i> Loading...
+  </div>
+
+  <section class="module-grid" aria-label="School modules" *ngIf="!loading">
+    <a
+      *ngFor="let module of modules"
+      [routerLink]="module.link"
+      [class]="'module-card module-card--' + module.color"
+    >
+      <div class="module-card__icon"><i [class]="'bi ' + module.icon"></i></div>
+      <div>
+        <p>{{ module.label }}</p>
+        <strong>{{ module.value }}</strong
+        ><span>{{ module.note }}</span>
+      </div>
+      <i class="bi bi-arrow-up-right module-card__arrow"></i>
+    </a>
+  </section>
+
+  <section class="dashboard-grid dashboard-grid--primary" *ngIf="!loading">
+    <article class="panel enrollment-panel">
+      <div class="panel__heading">
+        <div>
+          <p class="eyebrow">GROWTH</p>
+          <h2>{{ chartTitle }}</h2>
+        </div>
+        <div class="chart-filters" aria-label="Chart time range">
+          <label class="chart-metric-filter">
+            <span>Show</span>
+            <select
+              [value]="chartMetric"
+              (change)="setChartMetric($any($event.target).value)"
+            >
+              <option value="schools">Schools</option>
+              <option value="classes">Classes</option>
+              <option value="streams">Streams</option>
+              <option value="specializations">Specializations</option>
+            </select>
+          </label>
+          <button
+            type="button"
+            [class.active]="chartPeriod === 'days'"
+            (click)="setChartPeriod('days')"
+          >
+            Days
+          </button>
+          <button
+            type="button"
+            [class.active]="chartPeriod === 'weeks'"
+            (click)="setChartPeriod('weeks')"
+          >
+            Weeks
+          </button>
+          <button
+            type="button"
+            [class.active]="chartPeriod === 'months'"
+            (click)="setChartPeriod('months')"
+          >
+            Months
+          </button>
+          <span class="period">{{ chartPeriodLabel }}</span>
+        </div>
+      </div>
+      <div class="chart" *ngIf="chartData.length">
+        <div class="chart__labels">
+          <span>{{ maxYLabel }}</span
+          ><span>{{ midYLabel }}</span
+          ><span>0</span>
+        </div>
+        <div class="chart__area">
+          <div class="chart__bar-group">
+            <div *ngFor="let item of chartData" class="chart__bar-column">
+              <div
+                class="chart__bar"
+                [style.height.%]="barHeight(item.count)"
+                [attr.aria-label]="
+                  item.month + ': ' + item.count + ' ' + chartMetricLabel
+                "
+                tabindex="0"
+              >
+                <span class="chart__tooltip" role="tooltip">
+                  <strong>{{ item.month }}</strong>
+                  <span
+                    >{{ item.count }}
+                    {{
+                      item.count === 1
+                        ? chartMetricSingular
+                        : chartMetricLabel.toLowerCase()
+                    }}
+                    added</span
+                  >
+                  <small *ngFor="let detail of item.items.slice(0, 4)">{{
+                    detail
+                  }}</small>
+                  <small *ngIf="item.items.length > 4"
+                    >+{{ item.items.length - 4 }} more</small
+                  >
+                </span>
+              </div>
+              <span class="chart__bar-label">{{ item.month }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="chart__footer" *ngIf="chartGrowth">
+        <span><i></i> New {{ chartMetricLabel.toLowerCase() }} added</span>
+        <strong
+          >{{ chartGrowth > 0 ? "+" : "" }}{{ chartGrowth }}%
+          <small>growth</small></strong
+        >
+      </div>
+      <div class="empty-chart" *ngIf="!chartData.length">
+        <p>No school data yet</p>
+      </div>
+    </article>
+
+    <article class="panel activity-panel">
+      <div class="panel__heading">
+        <div>
+          <p class="eyebrow">RECENT</p>
+          <h2>Recent activity</h2>
+        </div>
+        <a href="#" (click)="$event.preventDefault(); showAllActivities = true"
+          >View all</a
+        >
+      </div>
+      <div class="activity-list" *ngIf="activities.length; else noActivity">
+        <div class="activity" *ngFor="let activity of activities">
+          <span [class]="'activity__icon activity__icon--' + activity.color"
+            ><i [class]="'bi ' + activity.icon"></i
+          ></span>
+          <div>
+            <strong>{{ activity.title }}</strong>
+            <p>{{ activity.detail }}</p>
+          </div>
+          <time>{{ activity.time }}</time>
+        </div>
+      </div>
+      <ng-template #noActivity>
+        <div class="empty-chart">
+          <p>No recent activity recorded yet.</p>
+        </div>
+      </ng-template>
+    </article>
+  </section>
+
+  <section class="dashboard-grid dashboard-grid--secondary" *ngIf="!loading">
+    <article class="panel streams-panel">
+      <div class="panel__heading">
+        <div>
+          <p class="eyebrow">ACADEMICS</p>
+          <h2>Streams</h2>
+        </div>
+        <a routerLink="/streams">Manage</a>
+      </div>
+      <div class="progress-list" *ngIf="streamProgress.length">
+        <div *ngFor="let stream of streamProgress" class="progress-row">
+          <div>
+            <span>{{ stream.name }}</span><strong>{{ stream.pct }}%</strong>
+          </div>
+          <div class="progress-track">
+            <span
+              [class]="'progress-fill progress-fill--' + stream.color"
+              [style.width.%]="stream.pct"
+            ></span>
+          </div>
+        </div>
+      </div>
+      <div class="empty-chart" *ngIf="!streamProgress.length">
+        <p>No streams configured yet</p>
+      </div>
+    </article>
+    <article class="configuration-card">
+      <div>
+        <p class="eyebrow">QUICK ACTION</p>
+        <h2>Build a complete setup</h2>
+        <p>
+          Map board, school, classes, stream and specialization in one simple
+          flow.
+        </p>
+        <a routerLink="/specializations/full-configuration"
+          >Start configuration <i class="bi bi-arrow-right"></i
+        ></a>
+      </div>
+      <i class="bi bi-stars configuration-card__art"></i>
+    </article>
+  </section>
+
+  <div
+    class="overlay"
+    *ngIf="showAllActivities"
+    (click)="showAllActivities = false"
+  >
+    <div class="overlay-panel" (click)="$event.stopPropagation()">
+      <div class="overlay-header">
+        <h2>All Activity</h2>
+        <button class="overlay-close" (click)="showAllActivities = false">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="overlay-body">
+        <div class="activity" *ngFor="let activity of allActivities">
+          <span [class]="'activity__icon activity__icon--' + activity.color"
+            ><i [class]="'bi ' + activity.icon"></i
+          ></span>
+          <div>
+            <strong>{{ activity.title }}</strong>
+            <p>{{ activity.detail }}</p>
+          </div>
+          <time>{{ activity.time }}</time>
+        </div>
+        <div class="empty-chart" *ngIf="!allActivities.length">
+          <p>No activity recorded yet</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
