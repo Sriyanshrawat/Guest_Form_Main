@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AgGridAngular } from 'ag-grid-angular';
 import { CellClickedEvent, ColDef, GridApi, GridReadyEvent } from 'ag-grid-community';
 import {
@@ -12,6 +12,7 @@ import {
   ReactiveFormsModule,
   Validators
 } from '@angular/forms';
+import { forkJoin } from 'rxjs';
 
 import { Student, LookupOption } from '../../models/student.model';
 import { StudentService } from '../../services/student.service';
@@ -35,6 +36,7 @@ export class StudentFormComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
 
   submitting = false;
   loading = false;
@@ -475,31 +477,30 @@ export class StudentFormComponent implements OnInit {
 
   // reload cascading lookups for editing
   private loadCascadeForEdit(s: Student): void {
-    this.studentService.getSessions(s.boardId).subscribe({
-      next: (sessionsData) => {
-        this.sessions = sessionsData;
-        this.studentService.getSchools(s.boardId, s.sessionId).subscribe({
-          next: (schoolsData) => {
-            this.schools = schoolsData;
-            this.studentService.getClasses(s.boardId, s.sessionId, s.schoolId).subscribe({
-              next: (classesData) => {
-                this.classes = classesData;
-                this.studentService.getStreams(s.classId).subscribe({
-                  next: (streamsData) => {
-                    this.streams = streamsData;
-                  }
-                });
-                this.studentService.getSpecializations(s.classId).subscribe({
-                  next: (specsData) => {
-                    this.specializations = specsData;
-                  }
-                });
-                this.patchStudentForm(s);
-              }
-            });
-          }
-        });
-      }
+    forkJoin({
+      sessions: this.studentService.getSessions(s.boardId),
+      schools: this.studentService.getSchools(s.boardId, s.sessionId),
+      classes: this.studentService.getClasses(s.boardId, s.sessionId, s.schoolId),
+      streams: this.studentService.getStreams(s.classId),
+      specializations: this.studentService.getSpecializations(s.classId),
+    }).subscribe({
+      next: (data) => {
+        this.sessions = data.sessions;
+        this.schools = data.schools;
+        this.classes = data.classes;
+        this.streams = data.streams;
+        this.specializations = data.specializations;
+        this.patchStudentForm(s);
+      },
+      error: (error: HttpErrorResponse) => {
+        if (error.status === 401 || error.status === 403) {
+          this.router.navigate(['/login']);
+        } else {
+          this.errorMessage =
+            'Unable to load student data for editing. Make sure the backend is running.';
+          this.cancelEdit();
+        }
+      },
     });
   }
 

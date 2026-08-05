@@ -139,15 +139,12 @@ export class StreamsComponent implements OnInit {
       return;
     }
 
-    const hasSessions = this.sessions.length > 0;
-
     this.eligibleClasses = this.allClasses.filter(
       (c) =>
         c.schoolId === this.selectedSchoolId &&
         c.name &&
         STREAM_ELIGIBLE.has(c.name) &&
-        c.id != null &&
-        hasSessions,
+        c.id != null,
     );
   }
 

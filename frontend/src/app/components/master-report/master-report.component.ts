@@ -230,7 +230,9 @@ export class MasterReportComponent implements OnInit {
     const students = this.students.filter(st =>
       (!this.filterBoard || st.boardName === this.filterBoard) &&
       (!this.filterSchool || st.schoolName === this.filterSchool) &&
+      (!this.filterSession || st.sessionName === this.filterSession) &&
       (!this.filterClass || `${st.className} ${st.classSection}` === this.filterClass) &&
+      (!this.filterStream || st.streamName === this.filterStream) &&
       (!this.searchText || `${st.firstName} ${st.lastName}`.toLowerCase().includes(this.searchText.toLowerCase()) ||
         (st.email || '').toLowerCase().includes(this.searchText.toLowerCase()) ||
         (st.schoolName || '').toLowerCase().includes(this.searchText.toLowerCase()) ||

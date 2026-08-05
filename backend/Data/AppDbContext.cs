@@ -132,6 +132,10 @@ namespace GuestApi.Data
                     .WithMany()
                     .HasForeignKey(e => e.ClassId)
                     .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne<Stream>()
+                    .WithMany()
+                    .HasForeignKey(e => e.StreamId)
+                    .OnDelete(DeleteBehavior.SetNull);
             });
 
             modelBuilder.Entity<Student>(entity =>

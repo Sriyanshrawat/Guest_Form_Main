@@ -226,6 +226,15 @@ namespace GuestApi.Controllers
             if (config == null)
                 return NotFound(new { message = "Configuration not found." });
 
+            // prevent duplicate configuration (excluding this row)
+            var duplicate = await conn.QuerySingleAsync<int>(
+                StoredProcedures.FullConfig_DuplicateCheck,
+                new { pBoardId = dto.BoardId, pSessionId = dto.SessionId, pSchoolId = dto.SchoolId, pClassId = dto.ClassId, pExcludeId = id },
+                commandType: CommandType.StoredProcedure);
+
+            if (duplicate > 0)
+                return Conflict(new { message = "This board, session, school, and class configuration is already saved." });
+
             // re-snapshot current streams and specializations
             var streams = await conn.QuerySingleAsync<string>(
                 StoredProcedures.Streams_ConcatByClass,

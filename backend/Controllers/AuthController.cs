@@ -165,7 +165,7 @@ namespace GuestApi.Controllers
                 issuer: jwtIssuer,
                 audience: jwtIssuer,
                 claims: claims,
-                expires: DateTime.UtcNow.AddDays(365),
+                expires: DateTime.UtcNow.AddHours(8),
                 signingCredentials: creds
             );
 

@@ -111,6 +111,20 @@ using (var scope = app.Services.CreateScope())
     // ensure schema created
     db.Database.EnsureCreated();
 
+    // users table (EnsureCreated never runs on a pre-existing DB, so create it defensively)
+    db.Database.ExecuteSqlRaw("""
+        CREATE TABLE IF NOT EXISTS `users` (
+            `Id` int NOT NULL AUTO_INCREMENT,
+            `Username` varchar(100) NOT NULL,
+            `PasswordHash` varchar(200) NOT NULL,
+            `Role` varchar(20) NOT NULL,
+            `CreatedAt` datetime(6) NOT NULL,
+            `UpdatedAt` datetime(6) NULL,
+            CONSTRAINT `PK_users` PRIMARY KEY (`Id`),
+            CONSTRAINT `UX_users_Username` UNIQUE (`Username`)
+        );
+        """);
+
     // SchoolBoards table
     db.Database.ExecuteSqlRaw("""
         CREATE TABLE IF NOT EXISTS `SchoolBoards` (
@@ -247,6 +261,20 @@ using (var scope = app.Services.CreateScope())
         db.Database.ExecuteSqlRaw("ALTER TABLE `Specializations` ADD INDEX `IX_Specializations_StreamId` (`StreamId`);");
     }
 
+    var hasSpecializationStreamForeignKey = db.Database.SqlQueryRaw<int>("""
+        SELECT COUNT(*) AS `Value`
+        FROM information_schema.table_constraints
+        WHERE table_schema = DATABASE()
+          AND table_name = 'Specializations'
+          AND constraint_name = 'FK_Specializations_Streams_StreamId'
+          AND constraint_type = 'FOREIGN KEY'
+        """).AsEnumerable().Single() > 0;
+
+    if (!hasSpecializationStreamForeignKey)
+    {
+        db.Database.ExecuteSqlRaw("ALTER TABLE `Specializations` ADD CONSTRAINT `FK_Specializations_Streams_StreamId` FOREIGN KEY (`StreamId`) REFERENCES `Streams` (`Id`) ON DELETE SET NULL;");
+    }
+
     // migrate legacy Classes table
     var hasClassCodeColumn = db.Database.SqlQueryRaw<int>("""
         SELECT COUNT(*) AS `Value`
@@ -277,6 +305,32 @@ using (var scope = app.Services.CreateScope())
         db.Database.ExecuteSqlRaw("ALTER TABLE `Classes` ADD COLUMN `SchoolId` int NULL;");
         db.Database.ExecuteSqlRaw("ALTER TABLE `Classes` DROP INDEX `UX_Classes_Name_Section`;");
         db.Database.ExecuteSqlRaw("ALTER TABLE `Classes` ADD UNIQUE INDEX `UX_Classes_SchoolId_Name_Section` (`SchoolId`, `Name`, `Section`);");
+    }
+
+    // migrate: add Classes.SessionId (nullable FK, ON DELETE SET NULL)
+    var hasClassSessionIdColumn = db.Database.SqlQueryRaw<int>("""
+        SELECT COUNT(*) AS `Value`
+        FROM information_schema.columns
+        WHERE table_schema = DATABASE() AND table_name = 'Classes' AND column_name = 'SessionId'
+        """).AsEnumerable().Single() > 0;
+
+    if (!hasClassSessionIdColumn)
+    {
+        db.Database.ExecuteSqlRaw("ALTER TABLE `Classes` ADD COLUMN `SessionId` int NULL;");
+    }
+
+    var hasClassesSessionForeignKey = db.Database.SqlQueryRaw<int>("""
+        SELECT COUNT(*) AS `Value`
+        FROM information_schema.table_constraints
+        WHERE table_schema = DATABASE()
+          AND table_name = 'Classes'
+          AND constraint_name = 'FK_Classes_Sessions'
+          AND constraint_type = 'FOREIGN KEY'
+        """).AsEnumerable().Single() > 0;
+
+    if (!hasClassesSessionForeignKey)
+    {
+        db.Database.ExecuteSqlRaw("ALTER TABLE `Classes` ADD CONSTRAINT `FK_Classes_Sessions` FOREIGN KEY (`SessionId`) REFERENCES `Sessions` (`Id`) ON DELETE SET NULL;");
     }
 
     // migrate: rename Classes.Name -> Class

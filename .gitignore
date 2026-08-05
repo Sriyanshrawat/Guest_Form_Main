@@ -1,0 +1,31 @@
+# ===== Secrets / local config =====
+backend/appsettings.Development.json
+backend/appsettings.Staging.json
+backend/appsettings.Production.json
+*.user
+.env
+.env.local
+
+# ===== .NET build output =====
+backend/bin/
+backend/obj/
+backend/*.userprefs
+*.suo
+*.user
+
+# ===== Node / Angular =====
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/.cache/
+*.log
+npm-debug.log*
+
+# ===== Editors / OS =====
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# ===== Test output =====
+coverage/

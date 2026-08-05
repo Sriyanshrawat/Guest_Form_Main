@@ -20,8 +20,10 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   // handle response errors
   return next(req).pipe(
     catchError((err) => {
-      // logout on 401
-      if (err.status === 401) {
+      // logout on 401 (except the login/signup endpoints themselves,
+      // where a 401 just means invalid credentials)
+      const isAuthEndpoint = req.url.includes('/Auth/');
+      if (err.status === 401 && !isAuthEndpoint) {
         authService.logout();
         router.navigate(['/login']);
       }

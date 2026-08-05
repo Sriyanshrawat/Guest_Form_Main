@@ -1276,15 +1276,15 @@ BEGIN
     SELECT COUNT(*) FROM Students WHERE InsertedBy = pUsername AND IsActive = 1;
 END$$
 
--- Returns 1 when the email is used by any student (including soft-deleted).
+-- Returns 1 when the email is used by a non-deleted student.
 DROP PROCEDURE IF EXISTS sp_Students_EmailExists$$
 
 CREATE PROCEDURE sp_Students_EmailExists(IN pEmail VARCHAR(150))
 BEGIN
-    SELECT COUNT(*) FROM Students WHERE Email = pEmail;
+    SELECT COUNT(*) FROM Students WHERE Email = pEmail AND IsActive = 1 AND DeletedDate IS NULL;
 END$$
 
--- Returns 1 when the email is used by a student other than pExcludeId.
+-- Returns 1 when the email is used by a non-deleted student other than pExcludeId.
 DROP PROCEDURE IF EXISTS sp_Students_EmailExistsExclude$$
 
 CREATE PROCEDURE sp_Students_EmailExistsExclude(
@@ -1292,7 +1292,7 @@ CREATE PROCEDURE sp_Students_EmailExistsExclude(
     IN pExcludeId INT
 )
 BEGIN
-    SELECT COUNT(*) FROM Students WHERE Email = pEmail AND Id <> pExcludeId;
+    SELECT COUNT(*) FROM Students WHERE Email = pEmail AND IsActive = 1 AND DeletedDate IS NULL AND Id <> pExcludeId;
 END$$
 
 -- Inserts a student and returns the created row with joined names.
@@ -1472,7 +1472,8 @@ END$$
 DROP PROCEDURE IF EXISTS sp_FullConfig_DuplicateCheck$$
 
 CREATE PROCEDURE sp_FullConfig_DuplicateCheck(
-    IN pBoardId INT, IN pSessionId INT, IN pSchoolId INT, IN pClassId INT
+    IN pBoardId INT, IN pSessionId INT, IN pSchoolId INT, IN pClassId INT,
+    IN pExcludeId INT DEFAULT 0
 )
 BEGIN
     SELECT COUNT(*)
@@ -1482,7 +1483,8 @@ BEGIN
       AND BoardId = pBoardId
       AND SessionId = pSessionId
       AND SchoolId = pSchoolId
-      AND ClassId = pClassId;
+      AND ClassId = pClassId
+      AND Id <> pExcludeId;
 END$$
 
 -- Active saved configurations (newest first) with live streams/specializations.

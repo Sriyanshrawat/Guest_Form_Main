@@ -273,7 +273,7 @@ namespace GuestApi.Controllers
             using var conn = _db.CreateConnection();
             var classes = (await conn.QueryAsync<LookupOptionDto>(
                 StoredProcedures.Lookup_Classes,
-                new { pSchoolId = schoolId, pSessionId = (int?)null },
+                new { pSchoolId = schoolId, pSessionId = sessionId },
                 commandType: CommandType.StoredProcedure)).ToList();
             return Ok(classes);
         }
@@ -296,12 +296,13 @@ namespace GuestApi.Controllers
         {
             using var conn = _db.CreateConnection();
 
-            var className = await conn.QuerySingleOrDefaultAsync<string>(
+            var className = (await conn.QuerySingleOrDefaultAsync<string>(
                 StoredProcedures.Class_GetNameById,
                 new { pId = classId },
-                commandType: CommandType.StoredProcedure);
+                commandType: CommandType.StoredProcedure))?.Trim();
 
-            if (className != "XI" && className != "XII")
+            if (!string.Equals(className, "XI", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(className, "XII", StringComparison.OrdinalIgnoreCase))
                 return Ok(Array.Empty<LookupOptionDto>());
 
             var specializations = (await conn.QueryAsync<LookupOptionDto>(
