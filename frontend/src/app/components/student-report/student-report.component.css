@@ -685,3 +685,184 @@ tbody tr:hover { background: var(--brass-soft); }
   .modal-hero { padding: 1.5rem 1.25rem 1.25rem; border-radius: 16px 16px 0 0; }
   .modal-body { padding: 1.25rem; }
 }
+
+/* VERIFICATION WORKFLOW */
+.review-banner {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  background: linear-gradient(180deg, var(--brass-soft), var(--surface));
+  border: 1px solid var(--rule-strong);
+  border-radius: 14px;
+  padding: .9rem 1.1rem;
+  margin-bottom: 1.25rem;
+  color: var(--ink);
+  font-size: .9rem;
+  box-shadow: var(--shadow-sm);
+}
+.review-banner i { color: var(--brass); font-size: 1.1rem; }
+.review-banner span { flex: 1; }
+.review-banner button {
+  background: var(--brass);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-weight: 700;
+  font-size: .8rem;
+  padding: .45rem .9rem;
+  cursor: pointer;
+  transition: background .2s ease;
+}
+.review-banner button:hover { background: var(--brass-dark); }
+
+.success-box {
+  background: var(--success-bg);
+  color: var(--success);
+  padding: .9rem 1.1rem;
+  border-radius: 10px;
+  border: 1px solid rgba(47, 104, 68, .2);
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+  font-size: .88rem;
+  animation: fadeIn .3s ease;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .3rem .6rem;
+  border-radius: 999px;
+  font: 700 .72rem 'Inter', sans-serif;
+  white-space: nowrap;
+}
+.status-badge i { font-size: .78rem; }
+.status-badge--approved {
+  background: var(--success-bg);
+  color: var(--success);
+  border: 1px solid rgba(47, 104, 68, .25);
+}
+.status-badge--rejected {
+  background: var(--error-bg);
+  color: var(--error);
+  border: 1px solid rgba(156, 59, 52, .25);
+}
+.status-badge--pending {
+  background: var(--brass-soft);
+  color: var(--brass-dark);
+  border: 1px solid rgba(150, 112, 47, .25);
+}
+
+.action-btn.approve {
+  background: var(--success-bg);
+  color: var(--success);
+  border-color: rgba(47, 104, 68, .3);
+}
+.action-btn.approve:hover {
+  background: linear-gradient(180deg, var(--success) 0%, #1f4a30 100%);
+  color: white;
+  border-color: var(--success);
+  box-shadow: 0 4px 12px rgba(47, 104, 68, .3);
+}
+
+.action-btn.reject {
+  background: var(--error-bg);
+  color: var(--error);
+  border-color: rgba(156, 59, 52, .3);
+}
+.action-btn.reject:hover {
+  background: linear-gradient(180deg, var(--error) 0%, #7e2f2a 100%);
+  color: white;
+  border-color: var(--error);
+  box-shadow: 0 4px 12px rgba(156, 59, 52, .3);
+}
+
+.review-note {
+  background: var(--error-bg);
+  color: var(--error);
+  padding: .9rem 1rem;
+  border-radius: 10px;
+  border: 1px solid rgba(156, 59, 52, .2);
+  font-size: .9rem;
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.modal-content--sm {
+  max-width: 480px;
+}
+
+.modal-hero--reject {
+  background: linear-gradient(135deg, #7e2f2a 0%, var(--error) 100%);
+}
+
+.reject-note-label {
+  display: flex;
+  flex-direction: column;
+  gap: .45rem;
+  font-size: .88rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+.reject-note-label > span small {
+  color: var(--ink-faint);
+  font-weight: 500;
+}
+.reject-note-label textarea {
+  width: 100%;
+  resize: vertical;
+  border: 1px solid var(--rule-strong);
+  border-radius: 10px;
+  padding: .7rem .8rem;
+  font: 400 .9rem 'Inter', sans-serif;
+  color: var(--ink);
+  background: var(--surface);
+}
+.reject-note-label textarea:focus {
+  outline: none;
+  border-color: var(--brass);
+  box-shadow: 0 0 0 3px rgba(150, 112, 47, .15);
+}
+.reject-note-counter {
+  align-self: flex-end;
+  color: var(--ink-faint);
+  font-size: .72rem;
+}
+
+.reject-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: .6rem;
+  margin-top: 1.25rem;
+}
+.reject-cancel,
+.reject-confirm {
+  border-radius: 10px;
+  font: 700 .85rem 'Inter', sans-serif;
+  padding: .6rem 1.1rem;
+  cursor: pointer;
+  border: 1px solid var(--rule-strong);
+  background: var(--surface);
+  color: var(--ink-soft);
+  transition: all .2s ease;
+}
+.reject-cancel:hover {
+  color: var(--ink);
+  border-color: var(--ink-faint);
+}
+.reject-confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  background: var(--error);
+  color: white;
+  border-color: var(--error);
+}
+.reject-confirm:hover { background: #7e2f2a; border-color: #7e2f2a; }
+.reject-confirm:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}

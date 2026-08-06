@@ -21,6 +21,12 @@ export const routes: Routes = [
     loadComponent: () => import('./components/dashboard/dashboard.component').then(m => m.DashboardComponent),
     canActivate: [adminGuard]
   },
+  // student dashboard (for non-admin users)
+  {
+    path: 'student-dashboard',
+    loadComponent: () => import('./components/student-dashboard/student-dashboard.component').then(m => m.StudentDashboardComponent),
+    canActivate: [authGuard]
+  },
   // student form
   {
     path: 'submit',

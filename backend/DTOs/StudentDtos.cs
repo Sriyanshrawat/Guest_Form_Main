@@ -126,9 +126,19 @@ namespace GuestApi.DTOs
         public int? SpecializationId { get; set; }
         public string? SpecializationName { get; set; }
         public bool IsActive { get; set; }
+        public string Status { get; set; } = "Pending";
+        public string? ReviewNote { get; set; }
+        public string? ReviewedBy { get; set; }
+        public DateTime? ReviewedDate { get; set; }
         public string? UpdatedBy { get; set; }
         public DateTime? UpdatedDate { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? DeletedDate { get; set; }
+    }
+
+    public class StudentRejectDto
+    {
+        [MaxLength(500)]
+        public string? Note { get; set; }
     }
 }

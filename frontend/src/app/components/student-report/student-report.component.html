@@ -3,8 +3,19 @@
     <div>
       <p class="dashboard-subtitle">Student Management System</p>
       <h1>Student Report</h1>
-      <p style="margin:.5rem 0 0;color:var(--ink-soft);font-size:.98rem;max-width:46ch;">View, filter and inspect all registered student records.</p>
+      <p style="margin:.5rem 0 0;color:var(--ink-soft);font-size:.98rem;max-width:46ch;">Review, verify and accept or reject student registration requests.</p>
     </div>
+  </div>
+
+  <div class="review-banner" *ngIf="pendingCount">
+    <i class="bi bi-hourglass-split"></i>
+    <span><strong>{{ pendingCount }}</strong> registration{{ pendingCount === 1 ? '' : 's' }} awaiting your review.</span>
+    <button type="button" (click)="filterStatus = 'Pending'; applyFilters()">Review now</button>
+  </div>
+
+  <div class="success-box" *ngIf="actionMessage">
+    <i class="bi bi-check-circle-fill"></i>
+    {{ actionMessage }}
   </div>
 
   <div class="stats">
@@ -75,6 +86,10 @@
         <option value="">All Classes</option>
         <option *ngFor="let c of classOptions" [value]="c">{{ c }}</option>
       </select>
+      <select [(ngModel)]="filterStatus" (change)="applyFilters()">
+        <option value="">All Status</option>
+        <option *ngFor="let st of statusOptions" [value]="st">{{ st }}</option>
+      </select>
       <button class="clear-filters-btn" (click)="clearFilters()"><i class="bi bi-x-circle"></i> Clear</button>
     </div>
 
@@ -83,6 +98,7 @@
         <thead>
           <tr>
             <th>Student</th>
+            <th>Status</th>
             <th>Board</th>
             <th>Class</th>
             <th>School</th>
@@ -103,6 +119,14 @@
                 </div>
               </div>
             </td>
+            <td>
+              <span [class]="statusClass(s)">
+                <i [class.bi-check2-circle]="s.status === 'Approved'"
+                   [class.bi-x-circle]="s.status === 'Rejected'"
+                   [class.bi-hourglass-split]="!s.status || s.status === 'Pending'"></i>
+                {{ s.status || 'Pending' }}
+              </span>
+            </td>
             <td><span class="badge badge-board">{{ s.boardName }}</span></td>
             <td><span class="badge badge-class">{{ s.className }}{{ s.classSection ? ' - ' + s.classSection : '' }}</span></td>
             <td>{{ s.schoolName }}</td>
@@ -118,6 +142,12 @@
             </td>
             <td>
               <div class="action-btns">
+                <button class="action-btn approve" *ngIf="s.status !== 'Approved'" (click)="approveStudent(s)" title="Accept this registration">
+                  <i class="bi bi-check2-circle"></i><span>Accept</span>
+                </button>
+                <button class="action-btn reject" *ngIf="s.status !== 'Rejected'" (click)="openRejectModal(s)" title="Reject this registration">
+                  <i class="bi bi-x-circle"></i><span>Reject</span>
+                </button>
                 <button class="action-btn view" (click)="viewDetails(s)" title="View details">
                   <i class="bi bi-eye-fill"></i><span>View</span>
                 </button>
@@ -149,15 +179,26 @@
   <div class="modal-content" (click)="$event.stopPropagation()">
     <button class="modal-close" (click)="closeDetails()"><i class="bi bi-x-lg"></i></button>
 
-    <div class="modal-hero" [style.background]="avatarColor(viewingStudent)">
+      <div class="modal-hero" [style.background]="avatarColor(viewingStudent)">
       <div class="modal-avatar">{{ initials(viewingStudent) }}</div>
       <div class="modal-hero-text">
         <h2>{{ viewingStudent.firstName }} {{ viewingStudent.lastName }}</h2>
         <p>{{ viewingStudent.email }} · {{ viewingStudent.phoneNumber }}</p>
+        <span [class]="statusClass(viewingStudent)">
+          <i [class.bi-check2-circle]="viewingStudent.status === 'Approved'"
+             [class.bi-x-circle]="viewingStudent.status === 'Rejected'"
+             [class.bi-hourglass-split]="!viewingStudent.status || viewingStudent.status === 'Pending'"></i>
+          {{ viewingStudent.status || 'Pending' }}
+        </span>
       </div>
     </div>
 
     <div class="modal-body">
+      <div class="detail-section" *ngIf="viewingStudent.status === 'Rejected' && viewingStudent.reviewNote">
+        <h3><i class="bi bi-chat-left-text-fill"></i> Review Note</h3>
+        <p class="review-note">{{ viewingStudent.reviewNote }}</p>
+      </div>
+
       <div class="detail-section">
         <h3><i class="bi bi-person-fill"></i> Personal Details</h3>
         <div class="detail-grid">
@@ -289,6 +330,44 @@
             <span class="detail-value">{{ viewingStudent.specializationName || '—' }}</span>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="rejectingStudent" (click)="closeRejectModal()">
+  <div class="modal-content modal-content--sm" (click)="$event.stopPropagation()">
+    <button class="modal-close" (click)="closeRejectModal()"><i class="bi bi-x-lg"></i></button>
+
+    <div class="modal-hero modal-hero--reject">
+      <div class="modal-avatar">{{ initials(rejectingStudent) }}</div>
+      <div class="modal-hero-text">
+        <h2>Reject {{ rejectingStudent.firstName }} {{ rejectingStudent.lastName }}?</h2>
+        <p>The student will be notified that their form was rejected.</p>
+      </div>
+    </div>
+
+    <div class="modal-body">
+      <div class="error-box" *ngIf="errorMessage">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        {{ errorMessage }}
+      </div>
+      <label class="reject-note-label">
+        <span>Note to the student <small>(optional)</small></span>
+        <textarea
+          [(ngModel)]="rejectNote"
+          rows="4"
+          maxlength="500"
+          placeholder="e.g. Incomplete documents — please upload your Aadhaar card and re-submit."
+        ></textarea>
+        <small class="reject-note-counter">{{ rejectNote.length }}/500</small>
+      </label>
+      <div class="reject-actions">
+        <button class="reject-cancel" type="button" (click)="closeRejectModal()">Cancel</button>
+        <button class="reject-confirm" type="button" [disabled]="submittingReview" (click)="confirmReject()">
+          <i class="bi bi-x-circle"></i>
+          {{ submittingReview ? 'Rejecting...' : 'Reject Registration' }}
+        </button>
       </div>
     </div>
   </div>

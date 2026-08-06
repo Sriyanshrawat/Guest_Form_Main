@@ -163,6 +163,7 @@ export class AppComponent implements OnInit {
   // sidebar route
   isSidebarRoute(): boolean {
     return this.router.url.startsWith('/submit') ||
+      this.router.url.startsWith('/student-dashboard') ||
       this.router.url.startsWith('/dashboard') ||
       this.router.url.startsWith('/admin') ||
       this.router.url.startsWith('/master-report') ||

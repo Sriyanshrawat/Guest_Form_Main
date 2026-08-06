@@ -36,6 +36,14 @@ export class StudentService {
     return this.http.delete<void>(`${this.apiUrl}/Students/${id}`);
   }
 
+  approveStudent(id: number): Observable<Student> {
+    return this.http.post<Student>(`${this.apiUrl}/Students/${id}/approve`, {});
+  }
+
+  rejectStudent(id: number, note?: string): Observable<Student> {
+    return this.http.post<Student>(`${this.apiUrl}/Students/${id}/reject`, { note });
+  }
+
   getBoards(): Observable<LookupOption[]> {
     return this.http.get<LookupOption[]>(`${this.apiUrl}/Students/boards`);
   }

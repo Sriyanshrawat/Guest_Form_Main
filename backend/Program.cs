@@ -478,6 +478,10 @@ using (var scope = app.Services.CreateScope())
             `StreamId` int NULL,
             `SpecializationId` int NULL,
             `IsActive` tinyint(1) NOT NULL DEFAULT 1,
+            `Status` varchar(20) NOT NULL DEFAULT 'Pending',
+            `ReviewNote` varchar(500) NULL,
+            `ReviewedBy` varchar(100) NULL,
+            `ReviewedDate` datetime(6) NULL,
             `InsertedBy` varchar(100) NOT NULL,
             `UpdatedBy` varchar(100) NULL,
             `UpdatedDate` datetime(6) NULL,
@@ -527,6 +531,29 @@ using (var scope = app.Services.CreateScope())
         db.Database.ExecuteSqlRaw("ALTER TABLE `Students` ADD COLUMN `MotherTongue` varchar(50) NULL;");
         db.Database.ExecuteSqlRaw("ALTER TABLE `Students` ADD COLUMN `Category` varchar(20) NULL;");
         db.Database.ExecuteSqlRaw("ALTER TABLE `Students` ADD COLUMN `EnrollmentNumber` varchar(20) NULL;");
+    }
+
+    // migrate: add Students verification columns (Status, review audit)
+    var hasStudentStatusColumn = db.Database.SqlQueryRaw<int>("""
+        SELECT COUNT(*) AS `Value`
+        FROM information_schema.columns
+        WHERE table_schema = DATABASE() AND table_name = 'Students' AND column_name = 'Status'
+        """).AsEnumerable().Single() > 0;
+
+    if (!hasStudentStatusColumn)
+    {
+        db.Database.ExecuteSqlRaw("ALTER TABLE `Students` ADD COLUMN `Status` varchar(20) NOT NULL DEFAULT 'Pending';");
+        db.Database.ExecuteSqlRaw("ALTER TABLE `Students` ADD COLUMN `ReviewNote` varchar(500) NULL;");
+        db.Database.ExecuteSqlRaw("ALTER TABLE `Students` ADD COLUMN `ReviewedBy` varchar(100) NULL;");
+        db.Database.ExecuteSqlRaw("ALTER TABLE `Students` ADD COLUMN `ReviewedDate` datetime(6) NULL;");
+
+        // backfill: existing live students are treated as already approved so the
+        // new verification workflow doesn't suddenly flag every current record as pending.
+        db.Database.ExecuteSqlRaw("""
+            UPDATE `Students`
+            SET `Status` = 'Approved'
+            WHERE `Status` = 'Pending' AND `IsActive` = 1 AND `DeletedDate` IS NULL;
+            """);
     }
 }
 

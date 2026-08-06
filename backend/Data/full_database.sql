@@ -228,6 +228,10 @@ CREATE TABLE Students (
     StreamId         INT NULL,
     SpecializationId INT NULL,
     IsActive         TINYINT(1) NOT NULL DEFAULT 1,
+    Status           VARCHAR(20) NOT NULL DEFAULT 'Pending',
+    ReviewNote       VARCHAR(500) NULL,
+    ReviewedBy       VARCHAR(100) NULL,
+    ReviewedDate     DATETIME(6) NULL,
     InsertedBy       VARCHAR(100) NOT NULL,
     UpdatedBy        VARCHAR(100) NULL,
     UpdatedDate      DATETIME(6) NULL,
@@ -1197,7 +1201,8 @@ BEGIN
            s.ClassId, c.`Class` AS ClassName, c.Section AS ClassSection,
            s.StreamId, st.Name AS StreamName,
            s.SpecializationId, sp.Name AS SpecializationName,
-           s.IsActive, s.InsertedBy, s.UpdatedBy, s.UpdatedDate, s.DeletedDate,
+           s.IsActive, s.Status, s.ReviewNote, s.ReviewedBy, s.ReviewedDate,
+           s.InsertedBy, s.UpdatedBy, s.UpdatedDate, s.DeletedDate,
            s.CreatedAt
     FROM Students s
     LEFT JOIN SchoolBoards b ON b.Id = s.BoardId
@@ -1226,7 +1231,8 @@ BEGIN
            s.ClassId, c.`Class` AS ClassName, c.Section AS ClassSection,
            s.StreamId, st.Name AS StreamName,
            s.SpecializationId, sp.Name AS SpecializationName,
-           s.IsActive, s.InsertedBy, s.UpdatedBy, s.UpdatedDate, s.DeletedDate,
+           s.IsActive, s.Status, s.ReviewNote, s.ReviewedBy, s.ReviewedDate,
+           s.InsertedBy, s.UpdatedBy, s.UpdatedDate, s.DeletedDate,
            s.CreatedAt
     FROM Students s
     LEFT JOIN SchoolBoards b ON b.Id = s.BoardId
@@ -1255,7 +1261,8 @@ BEGIN
            s.ClassId, c.`Class` AS ClassName, c.Section AS ClassSection,
            s.StreamId, st.Name AS StreamName,
            s.SpecializationId, sp.Name AS SpecializationName,
-           s.IsActive, s.InsertedBy, s.UpdatedBy, s.UpdatedDate, s.DeletedDate,
+           s.IsActive, s.Status, s.ReviewNote, s.ReviewedBy, s.ReviewedDate,
+           s.InsertedBy, s.UpdatedBy, s.UpdatedDate, s.DeletedDate,
            s.CreatedAt
     FROM Students s
     LEFT JOIN SchoolBoards b ON b.Id = s.BoardId
@@ -1319,14 +1326,14 @@ BEGIN
         EmergencyContactName, EmergencyContactPhone, AadhaarNumber, Nationality,
         Religion, MotherTongue, Category, EnrollmentNumber, RollNumber,
         BoardId, SessionId, SchoolId, ClassId, StreamId, SpecializationId,
-        IsActive, InsertedBy, CreatedAt
+        IsActive, Status, InsertedBy, CreatedAt
     ) VALUES (
         pFirstName, pLastName, pGender, pDateOfBirth, pEmail, pPhoneNumber, pAddress,
         pBloodGroup, pFatherName, pMotherName, pFatherPhone, pMotherPhone,
         pEmergencyContactName, pEmergencyContactPhone, pAadhaarNumber, pNationality,
         pReligion, pMotherTongue, pCategory, pEnrollmentNumber, pRollNumber,
         pBoardId, pSessionId, pSchoolId, pClassId, pStreamId, pSpecializationId,
-        1, pInsertedBy, UTC_TIMESTAMP(6)
+        1, 'Pending', pInsertedBy, UTC_TIMESTAMP(6)
     );
 
     SELECT s.Id, s.FirstName, s.LastName, s.Gender, s.DateOfBirth, s.Email,
@@ -1340,7 +1347,8 @@ BEGIN
            s.ClassId, c.`Class` AS ClassName, c.Section AS ClassSection,
            s.StreamId, st.Name AS StreamName,
            s.SpecializationId, sp.Name AS SpecializationName,
-           s.IsActive, s.InsertedBy, s.UpdatedBy, s.UpdatedDate, s.DeletedDate,
+           s.IsActive, s.Status, s.ReviewNote, s.ReviewedBy, s.ReviewedDate,
+           s.InsertedBy, s.UpdatedBy, s.UpdatedDate, s.DeletedDate,
            s.CreatedAt
     FROM Students s
     LEFT JOIN SchoolBoards b ON b.Id = s.BoardId
@@ -1385,6 +1393,7 @@ BEGIN
         RollNumber = pRollNumber, BoardId = pBoardId, SessionId = pSessionId,
         SchoolId = pSchoolId, ClassId = pClassId, StreamId = pStreamId,
         SpecializationId = pSpecializationId,
+        Status = 'Pending', ReviewNote = NULL, ReviewedBy = NULL, ReviewedDate = NULL,
         UpdatedBy = pUpdatedBy, UpdatedDate = UTC_TIMESTAMP(6)
     WHERE Id = pId;
 
@@ -1399,7 +1408,8 @@ BEGIN
            s.ClassId, c.`Class` AS ClassName, c.Section AS ClassSection,
            s.StreamId, st.Name AS StreamName,
            s.SpecializationId, sp.Name AS SpecializationName,
-           s.IsActive, s.InsertedBy, s.UpdatedBy, s.UpdatedDate, s.DeletedDate,
+           s.IsActive, s.Status, s.ReviewNote, s.ReviewedBy, s.ReviewedDate,
+           s.InsertedBy, s.UpdatedBy, s.UpdatedDate, s.DeletedDate,
            s.CreatedAt
     FROM Students s
     LEFT JOIN SchoolBoards b ON b.Id = s.BoardId
@@ -1424,6 +1434,87 @@ BEGIN
         DeletedBy = pDeletedBy,
         DeletedDate = UTC_TIMESTAMP(6)
     WHERE Id = pId;
+END$$
+
+-- Approves a student submission and returns the updated row with joined names.
+DROP PROCEDURE IF EXISTS sp_Student_Approve$$
+
+CREATE PROCEDURE sp_Student_Approve(
+    IN pId INT,
+    IN pReviewedBy VARCHAR(100)
+)
+BEGIN
+    UPDATE Students
+    SET Status = 'Approved',
+        IsActive = 1,
+        ReviewNote = NULL,
+        ReviewedBy = pReviewedBy,
+        ReviewedDate = UTC_TIMESTAMP(6)
+    WHERE Id = pId;
+
+    SELECT s.Id, s.FirstName, s.LastName, s.Gender, s.DateOfBirth, s.Email,
+           s.PhoneNumber, s.Address, s.BloodGroup, s.FatherName, s.MotherName,
+           s.FatherPhone, s.MotherPhone, s.EmergencyContactName,
+           s.EmergencyContactPhone, s.AadhaarNumber, s.Nationality, s.Religion,
+           s.MotherTongue, s.Category, s.EnrollmentNumber, s.RollNumber,
+           s.BoardId, b.UniversityName AS BoardName,
+           s.SessionId, ses.Name AS SessionName,
+           s.SchoolId, sch.Name AS SchoolName,
+           s.ClassId, c.`Class` AS ClassName, c.Section AS ClassSection,
+           s.StreamId, st.Name AS StreamName,
+           s.SpecializationId, sp.Name AS SpecializationName,
+           s.IsActive, s.Status, s.ReviewNote, s.ReviewedBy, s.ReviewedDate,
+           s.InsertedBy, s.UpdatedBy, s.UpdatedDate, s.DeletedDate,
+           s.CreatedAt
+    FROM Students s
+    LEFT JOIN SchoolBoards b ON b.Id = s.BoardId
+    LEFT JOIN Sessions ses ON ses.Id = s.SessionId
+    LEFT JOIN Schools sch ON sch.Id = s.SchoolId
+    LEFT JOIN Classes c ON c.Id = s.ClassId
+    LEFT JOIN Streams st ON st.Id = s.StreamId
+    LEFT JOIN Specializations sp ON sp.Id = s.SpecializationId
+    WHERE s.Id = pId;
+END$$
+
+-- Rejects a student submission (optional note) and returns the updated row.
+DROP PROCEDURE IF EXISTS sp_Student_Reject$$
+
+CREATE PROCEDURE sp_Student_Reject(
+    IN pId INT,
+    IN pReviewedBy VARCHAR(100),
+    IN pReviewNote VARCHAR(500)
+)
+BEGIN
+    UPDATE Students
+    SET Status = 'Rejected',
+        IsActive = 1,
+        ReviewNote = pReviewNote,
+        ReviewedBy = pReviewedBy,
+        ReviewedDate = UTC_TIMESTAMP(6)
+    WHERE Id = pId;
+
+    SELECT s.Id, s.FirstName, s.LastName, s.Gender, s.DateOfBirth, s.Email,
+           s.PhoneNumber, s.Address, s.BloodGroup, s.FatherName, s.MotherName,
+           s.FatherPhone, s.MotherPhone, s.EmergencyContactName,
+           s.EmergencyContactPhone, s.AadhaarNumber, s.Nationality, s.Religion,
+           s.MotherTongue, s.Category, s.EnrollmentNumber, s.RollNumber,
+           s.BoardId, b.UniversityName AS BoardName,
+           s.SessionId, ses.Name AS SessionName,
+           s.SchoolId, sch.Name AS SchoolName,
+           s.ClassId, c.`Class` AS ClassName, c.Section AS ClassSection,
+           s.StreamId, st.Name AS StreamName,
+           s.SpecializationId, sp.Name AS SpecializationName,
+           s.IsActive, s.Status, s.ReviewNote, s.ReviewedBy, s.ReviewedDate,
+           s.InsertedBy, s.UpdatedBy, s.UpdatedDate, s.DeletedDate,
+           s.CreatedAt
+    FROM Students s
+    LEFT JOIN SchoolBoards b ON b.Id = s.BoardId
+    LEFT JOIN Sessions ses ON ses.Id = s.SessionId
+    LEFT JOIN Schools sch ON sch.Id = s.SchoolId
+    LEFT JOIN Classes c ON c.Id = s.ClassId
+    LEFT JOIN Streams st ON st.Id = s.StreamId
+    LEFT JOIN Specializations sp ON sp.Id = s.SpecializationId
+    WHERE s.Id = pId;
 END$$
 
 -- ============================================================================

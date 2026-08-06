@@ -1,0 +1,248 @@
+:host {
+  display: block;
+}
+.student-dashboard {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2.5rem clamp(1.25rem, 4vw, 4rem) 3.5rem;
+  color: var(--ink);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+.sd-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+.sd-eyebrow {
+  margin: 0 0 0.45rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  font-weight: 800;
+  color: var(--brass);
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+}
+.sd-greeting {
+  margin: 0.1rem 0 0.4rem;
+  font-size: clamp(2rem, 3vw, 2.6rem);
+  letter-spacing: -0.035em;
+  color: var(--ink);
+  font-family: 'Source Serif 4', Georgia, serif;
+}
+.sd-sub {
+  margin: 0;
+  color: var(--ink-faint);
+  font-size: 0.95rem;
+}
+.sd-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: transparent;
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 0.6rem 1.1rem;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius, 4px);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: 0.18s;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+.sd-cta:hover {
+  border-color: var(--brass);
+  color: var(--brass-dark);
+}
+.sd-cta--primary {
+  background: var(--brass);
+  border-color: var(--brass);
+  color: #1c1a15;
+}
+.sd-cta--primary:hover {
+  background: var(--brass-light);
+  border-color: var(--brass-light);
+  color: #1c1a15;
+}
+.sd-loading,
+.sd-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.25rem;
+  border-radius: 15px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 1rem;
+}
+.sd-spinning {
+  color: var(--brass);
+  animation: sd-spin 0.8s linear infinite;
+  display: inline-block;
+}
+@keyframes sd-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.sd-error {
+  color: var(--ink);
+  justify-content: space-between;
+}
+.sd-error p {
+  margin: 0;
+}
+.sd-error button {
+  background: var(--brass);
+  color: #1c1a15;
+  border: none;
+  border-radius: var(--radius, 4px);
+  padding: 0.4rem 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.sd-error button:hover {
+  background: var(--brass-light);
+}
+.sd-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.sd-card {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 15px;
+  box-shadow: var(--shadow-sm);
+  padding: 1.15rem 1.3rem;
+}
+.sd-card-kicker {
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  color: var(--ink-faint);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.sd-card-value {
+  margin-top: 0.5rem;
+  font: 700 1.6rem/1.15 'Source Serif 4', Georgia, serif;
+  color: var(--ink);
+}
+.sd-card-value--approved {
+  color: var(--sage, #15926b);
+}
+.sd-card-value--rejected {
+  color: var(--rust, #b1543a);
+}
+.sd-card-value--pending {
+  color: var(--brass-light, #c99a4f);
+}
+.sd-details {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 1.5rem;
+}
+.sd-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+  padding: 1rem 1.15rem;
+  background: var(--surface);
+}
+.sd-detail span {
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-faint);
+  font-weight: 700;
+}
+.sd-detail strong {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sd-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: var(--brass-soft);
+  border: 1px dashed var(--brass);
+  border-radius: 15px;
+  padding: 1.1rem 1.3rem;
+  margin-bottom: 1.5rem;
+}
+.sd-notice p {
+  margin: 0;
+  color: var(--ink);
+}
+.sd-section-title {
+  margin: 0 0 0.75rem;
+  font-size: 1.35rem;
+  color: var(--ink);
+  font-family: 'Source Serif 4', Georgia, serif;
+}
+.sd-notifications {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 15px;
+  box-shadow: var(--shadow-sm);
+  padding: 1.1rem 1.3rem;
+}
+.sd-notifications ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sd-notifications li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+  color: var(--ink);
+  line-height: 1.4;
+  font-size: 0.92rem;
+}
+.sd-notifications li:last-child {
+  margin-bottom: 0;
+}
+.sd-notifications li i {
+  margin-top: 0.15rem;
+  font-size: 0.95rem;
+}
+.sd-notification--success i {
+  color: var(--sage, #15926b);
+}
+.sd-notification--warning i {
+  color: var(--brass-light, #c99a4f);
+}
+.sd-notification--info i {
+  color: var(--steel, #6f97b3);
+}
+
+@media (max-width: 800px) {
+  .sd-cards {
+    grid-template-columns: 1fr;
+  }
+  .sd-details {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .sd-head {
+    flex-direction: column;
+  }
+}

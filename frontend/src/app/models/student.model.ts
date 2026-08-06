@@ -35,6 +35,10 @@ export interface Student {
   specializationId?: number | null;
   specializationName?: string;
   isActive?: boolean;
+  status?: 'Pending' | 'Approved' | 'Rejected';
+  reviewNote?: string;
+  reviewedBy?: string;
+  reviewedDate?: string;
   createdAt?: string;
   deletedDate?: string;
 }

@@ -24,12 +24,19 @@ export class StudentReportComponent implements OnInit {
   filteredStudents: Student[] = [];
   loading = false;
   errorMessage = '';
+  actionMessage = '';
   searchText = '';
   filterGender = '';
   filterBoard = '';
   filterSchool = '';
   filterClass = '';
+  filterStatus = '';
   viewingStudent: Student | null = null;
+  rejectingStudent: Student | null = null;
+  rejectNote = '';
+  submittingReview = false;
+
+  readonly statusOptions = ['Pending', 'Approved', 'Rejected'] as const;
 
   readonly avatarPalette = [
     '#4f46e5', '#06b6d4', '#22c55e',
@@ -97,6 +104,7 @@ export class StudentReportComponent implements OnInit {
     this.filterBoard = '';
     this.filterSchool = '';
     this.filterClass = '';
+    this.filterStatus = '';
     this.applyFilters();
   }
 
@@ -118,7 +126,71 @@ export class StudentReportComponent implements OnInit {
         const label = s.className + (s.classSection ? ' - ' + s.classSection : '');
         if (label !== this.filterClass) return false;
       }
+      if (this.filterStatus && s.status !== this.filterStatus) return false;
       return true;
+    });
+  }
+
+  // pending submissions count
+  get pendingCount(): number { return this.students.filter(s => s.status !== 'Approved').length; }
+
+  // status badge class
+  statusClass(s: Student): string {
+    switch (s.status) {
+      case 'Approved': return 'status-badge status-badge--approved';
+      case 'Rejected': return 'status-badge status-badge--rejected';
+      default: return 'status-badge status-badge--pending';
+    }
+  }
+
+  // approve a submission
+  approveStudent(s: Student): void {
+    if (s.id == null) return;
+    if (!confirm(`Approve "${s.firstName} ${s.lastName}"? The student will be notified.`)) return;
+    this.actionMessage = '';
+    this.studentService.approveStudent(s.id).subscribe({
+      next: () => {
+        this.actionMessage = `Approved ${s.firstName} ${s.lastName}.`;
+        this.loadStudents();
+      },
+      error: (error: HttpErrorResponse) => {
+        this.errorMessage = this.adminErrorMessage(error, 'approve the student');
+      }
+    });
+  }
+
+  // open reject modal
+  openRejectModal(s: Student): void {
+    this.rejectingStudent = s;
+    this.rejectNote = s.reviewNote ?? '';
+    this.actionMessage = '';
+  }
+
+  // close reject modal
+  closeRejectModal(): void {
+    if (this.submittingReview) return;
+    this.rejectingStudent = null;
+    this.rejectNote = '';
+  }
+
+  // confirm rejection with optional note
+  confirmReject(): void {
+    const s = this.rejectingStudent;
+    if (!s || s.id == null) return;
+    this.submittingReview = true;
+    this.errorMessage = '';
+    this.studentService.rejectStudent(s.id, this.rejectNote.trim() || undefined).subscribe({
+      next: () => {
+        this.submittingReview = false;
+        this.actionMessage = `Rejected ${s.firstName} ${s.lastName}.`;
+        this.rejectingStudent = null;
+        this.rejectNote = '';
+        this.loadStudents();
+      },
+      error: (error: HttpErrorResponse) => {
+        this.submittingReview = false;
+        this.errorMessage = this.adminErrorMessage(error, 'reject the student');
+      }
     });
   }
 

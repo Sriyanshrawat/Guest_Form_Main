@@ -70,6 +70,7 @@ body.dark-mode .stage,
 body.dark-mode .education-board,
 body.dark-mode .school-page,
 body.dark-mode .dashboard,
+body.dark-mode .student-dashboard,
 body.dark-mode .guest-page {
   background: #111827 !important;
   color: #e5e7eb !important;

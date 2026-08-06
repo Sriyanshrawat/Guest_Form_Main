@@ -127,6 +127,18 @@
       </a>
     </ng-container>
 
+    <ng-container *ngIf="!authService.isAdmin()">
+      <a routerLink="/student-dashboard" routerLinkActive="sidebar__item--active" class="sidebar__item">
+        <i class="bi bi-grid-1x2-fill"></i>
+        <span>Dashboard</span>
+      </a>
+
+      <a routerLink="/submit" routerLinkActive="sidebar__item--active" class="sidebar__item">
+        <i class="bi bi-person-vcard-fill"></i>
+        <span>Registration Form</span>
+      </a>
+    </ng-container>
+
     <!-- <a
       routerLink="/submit"
       routerLinkActive="sidebar__item--active"

@@ -232,6 +232,55 @@ namespace GuestApi.Controllers
             return NoContent();
         }
 
+        // POST /api/Students/{id}/approve — admin accepts a submission.
+        [HttpPost("{id:int}/approve")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<StudentResponseDto>> ApproveStudent(int id)
+        {
+            using var conn = _db.CreateConnection();
+
+            var student = await conn.QuerySingleOrDefaultAsync<Student>(
+                StoredProcedures.Student_GetById,
+                new { pId = id },
+                commandType: CommandType.StoredProcedure);
+            if (student == null)
+                return NotFound(new { message = $"Student with Id {id} not found." });
+
+            var approved = await conn.QuerySingleAsync<StudentResponseDto>(
+                StoredProcedures.Student_Approve,
+                new { pId = id, pReviewedBy = User.Identity?.Name ?? "admin" },
+                commandType: CommandType.StoredProcedure);
+
+            return Ok(approved);
+        }
+
+        // POST /api/Students/{id}/reject — admin declines a submission (note is optional).
+        [HttpPost("{id:int}/reject")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<StudentResponseDto>> RejectStudent(int id, StudentRejectDto? dto)
+        {
+            using var conn = _db.CreateConnection();
+
+            var student = await conn.QuerySingleOrDefaultAsync<Student>(
+                StoredProcedures.Student_GetById,
+                new { pId = id },
+                commandType: CommandType.StoredProcedure);
+            if (student == null)
+                return NotFound(new { message = $"Student with Id {id} not found." });
+
+            var rejected = await conn.QuerySingleAsync<StudentResponseDto>(
+                StoredProcedures.Student_Reject,
+                new
+                {
+                    pId = id,
+                    pReviewedBy = User.Identity?.Name ?? "admin",
+                    pReviewNote = dto?.Note?.Trim()
+                },
+                commandType: CommandType.StoredProcedure);
+
+            return Ok(rejected);
+        }
+
         // get active boards as lookup options
         [HttpGet("boards")]
         public async Task<ActionResult<IEnumerable<LookupOptionDto>>> GetBoards()

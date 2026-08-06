@@ -89,6 +89,8 @@ namespace GuestApi.Data
         public const string Student_Create = "sp_Student_Create";
         public const string Student_Update = "sp_Student_Update";
         public const string Student_Delete = "sp_Student_Delete";
+        public const string Student_Approve = "sp_Student_Approve";
+        public const string Student_Reject = "sp_Student_Reject";
 
         // FULL CONFIGURATIONS
         public const string FullConfig_DuplicateCheck = "sp_FullConfig_DuplicateCheck";
