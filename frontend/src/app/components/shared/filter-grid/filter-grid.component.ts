@@ -71,6 +71,7 @@ export class FilterGridComponent {
     flex: 1,
     minWidth: 135,
   };
+  // build column definitions from inputs, appending an actions column
   get columnDefs(): ColDef[] {
     const fields = this.columns.map((c) => ({
       field: c.field,
@@ -93,13 +94,16 @@ export class FilterGridComponent {
       },
     ];
   }
+  // store the grid API and update the count on ready
   ready(event: GridReadyEvent): void {
     this.api = event.api;
     this.updateCount();
   }
+  // update the displayed record count from the grid
   updateCount(): void {
     this.displayedCount = this.api?.getDisplayedRowCount() ?? this.rows.length;
   }
+  // emit an action event when a grid action button is clicked
   clicked(event: CellClickedEvent): void {
     const id = (
       event.event?.target as HTMLElement | null

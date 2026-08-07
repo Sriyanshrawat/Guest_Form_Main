@@ -1,5 +1,6 @@
 namespace GuestApi.Data
 {
+    // names of the stored procedures used by the app
     public static class StoredProcedures
     {
         // USERS / AUTH
@@ -56,6 +57,7 @@ namespace GuestApi.Data
         public const string Stream_Exists = "sp_Stream_Exists";
         public const string Stream_GetById = "sp_Stream_GetById";
         public const string Streams_ActiveStudentsCount = "sp_Streams_ActiveStudentsCount";
+        public const string Streams_ActiveSpecializationsCount = "sp_Streams_ActiveSpecializationsCount";
         public const string Stream_Create = "sp_Stream_Create";
         public const string Stream_Update = "sp_Stream_Update";
         public const string Stream_Delete = "sp_Stream_Delete";
@@ -91,6 +93,19 @@ namespace GuestApi.Data
         public const string Student_Delete = "sp_Student_Delete";
         public const string Student_Approve = "sp_Student_Approve";
         public const string Student_Reject = "sp_Student_Reject";
+
+        // STUDENT SUBMISSIONS (application queue)
+        public const string StudentSubmission_GetAll = "sp_StudentSubmission_GetAll";
+        public const string StudentSubmission_GetById = "sp_StudentSubmission_GetById";
+        public const string StudentSubmission_GetMy = "sp_StudentSubmission_GetMy";
+        public const string StudentSubmissions_UserHasActiveSubmission = "sp_StudentSubmissions_UserHasActiveSubmission";
+        public const string StudentSubmissions_EmailExists = "sp_StudentSubmissions_EmailExists";
+        public const string StudentSubmissions_EmailExistsExclude = "sp_StudentSubmissions_EmailExistsExclude";
+        public const string StudentSubmission_Create = "sp_StudentSubmission_Create";
+        public const string StudentSubmission_Update = "sp_StudentSubmission_Update";
+        public const string StudentSubmission_Approve = "sp_StudentSubmission_Approve";
+        public const string StudentSubmission_Reject = "sp_StudentSubmission_Reject";
+        public const string StudentSubmission_Delete = "sp_StudentSubmission_Delete";
 
         // FULL CONFIGURATIONS
         public const string FullConfig_DuplicateCheck = "sp_FullConfig_DuplicateCheck";

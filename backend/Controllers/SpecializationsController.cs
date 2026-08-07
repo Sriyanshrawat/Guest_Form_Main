@@ -14,6 +14,7 @@ namespace GuestApi.Controllers
     {
         private readonly DapperContext _db;
 
+        // injects the Dapper database context
         public SpecializationsController(DapperContext db) => _db = db;
 
         // get all specializations

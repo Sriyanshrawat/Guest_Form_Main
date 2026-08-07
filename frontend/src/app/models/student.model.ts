@@ -48,3 +48,9 @@ export interface LookupOption {
   name: string;
   subtitle?: string | null;
 }
+
+export interface StudentSubmission extends Omit<Student, 'status'> {
+  username: string;
+  studentId?: number | null;
+  status?: 'Pending' | 'Approved' | 'Rejected';
+}

@@ -168,6 +168,7 @@ h2 {
   color: var(--ink-soft);
   cursor: pointer;
   font: 700 .68rem/1 inherit;
+  transition: all .15s ease;
 }
 .chart-metric-filter {
   display: flex;
@@ -185,11 +186,15 @@ h2 {
   color: var(--ink-soft);
   font: inherit;
 }
-.chart-filters button:hover,
+.chart-filters button:hover {
+  border-color: #4356d9;
+  color: #4356d9;
+}
 .chart-filters button.active {
-  background: var(--brass-soft);
-  border-color: var(--brass-soft);
-  color: var(--brass-dark);
+  background: linear-gradient(180deg, #5b7cfa 0%, #4356d9 100%);
+  border-color: #4356d9;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(67, 86, 217, .3);
 }
 .chart {
   display: flex;

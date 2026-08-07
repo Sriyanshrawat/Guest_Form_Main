@@ -90,10 +90,12 @@ export class MasterReportComponent implements OnInit {
     students: 'Students'
   };
 
+  // on init
   ngOnInit(): void {
     this.loadMasterData();
   }
 
+  // load all master data in parallel and refresh the report
   loadMasterData(): void {
     this.loading = true;
     this.errorMessage = '';
@@ -124,44 +126,50 @@ export class MasterReportComponent implements OnInit {
     });
   }
 
+  // distinct sorted options for the board filter
   get boardOptions(): string[] {
     return [...new Set(this.boards.map(b => b.universityName || b.name || 'Unknown'))]
       .filter(Boolean)
-      .sort();
+      .sort((a, b) => a.localeCompare(b));
   }
 
+  // distinct school names, optionally filtered by board
   get schoolOptions(): string[] {
     const filtered = this.filterBoard
       ? this.schools.filter(s => s.schoolBoardName === this.filterBoard)
       : this.schools;
-    return [...new Set(filtered.map(s => s.name))].sort();
+    return [...new Set(filtered.map(s => s.name))].sort((a, b) => a.localeCompare(b));
   }
 
+  // distinct session names for the session filter
   get sessionOptions(): string[] {
     const filtered = this.filterBoard || this.filterSchool
       ? this.classes.filter(c => (!this.filterBoard || c.schoolName && this.schools.some(s => s.name === c.schoolName && s.schoolBoardName === this.filterBoard)) && (!this.filterSchool || c.schoolName === this.filterSchool))
       : this.classes;
-    return [...new Set(filtered.map(c => c.sessionName || 'Unknown'))].filter(Boolean).sort();
+    return [...new Set(filtered.map(c => c.sessionName || 'Unknown'))].filter(Boolean).sort((a, b) => a.localeCompare(b));
   }
 
+  // distinct class name and section options for the class filter
   get classOptions(): string[] {
     const filtered = this.classes.filter(c =>
       (!this.filterBoard || (c.schoolName && this.schools.some(s => s.name === c.schoolName && s.schoolBoardName === this.filterBoard))) &&
       (!this.filterSchool || c.schoolName === this.filterSchool) &&
       (!this.filterSession || c.sessionName === this.filterSession)
     );
-    return [...new Set(filtered.map(c => `${c.name} ${c.section}`))].sort();
+    return [...new Set(filtered.map(c => `${c.name} ${c.section}`))].sort((a, b) => a.localeCompare(b));
   }
 
+  // distinct stream names for the stream filter
   get streamOptions(): string[] {
     const filtered = this.streams.filter(s =>
       (!this.filterBoard || (s.schoolName && this.schools.some(school => school.name === s.schoolName && school.schoolBoardName === this.filterBoard))) &&
       (!this.filterSchool || s.schoolName === this.filterSchool) &&
       (!this.filterClass || `${s.className} ${s.classSection}` === this.filterClass)
     );
-    return [...new Set(filtered.map(s => s.name))].sort();
+    return [...new Set(filtered.map(s => s.name))].sort((a, b) => a.localeCompare(b));
   }
 
+  // reset all filters and rebuild the report
   clearFilters(): void {
     this.searchText = '';
     this.filterBoard = '';
@@ -172,20 +180,24 @@ export class MasterReportComponent implements OnInit {
     this.refreshReport();
   }
 
+  // rebuild the report when a filter changes
   onFilterChange(): void {
     this.refreshReport();
   }
 
+  // change the selected metric and refresh
   changeMetric(metric: MasterMetric): void {
     this.selectedMetric = metric;
     this.refreshReport();
   }
 
+  // change the chart period and refresh
   changePeriod(period: ChartPeriod): void {
     this.selectedPeriod = period;
     this.refreshReport();
   }
 
+  // rebuild chart, report rows, activity, and board breakdown
   private refreshReport(): void {
     this.buildChart();
     this.buildReportRows();
@@ -193,6 +205,7 @@ export class MasterReportComponent implements OnInit {
     this.buildBoardBreakdown();
   }
 
+  // apply filters and return the filtered data sets
   private filteredEntities(): {
     boards: SchoolBoard[];
     schools: School[];
@@ -242,10 +255,11 @@ export class MasterReportComponent implements OnInit {
     return { boards, schools, classes, streams, specializations, students };
   }
 
+  // build the chart buckets, metrics, pie data, and history
   private buildChart(): void {
     const { boards, schools, classes, streams, specializations, students } = this.filteredEntities();
     const data = {
-      boards: boards.map(item => ({ insertedDate: item.insertedDate, label: item.universityName || item.name || 'Board', active: item.deletedDate ? false : true, deletedDate: item.deletedDate })),
+      boards: boards.map(item => ({ insertedDate: item.insertedDate, label: item.universityName || item.name || 'Board', active: !item.deletedDate && item.isActive !== false, deletedDate: item.deletedDate, isActive: item.isActive })),
       schools: schools.map(item => ({ insertedDate: item.insertedDate, label: item.name, active: item.isActive === false ? false : true, isActive: item.isActive })),
       classes: classes.map(item => ({ insertedDate: item.insertedDate, label: `${item.name} ${item.section}`, active: item.isActive === false ? false : true, isActive: item.isActive })),
       streams: streams.map(item => ({ insertedDate: item.insertedDate, label: item.name, active: item.isActive === false ? false : true, isActive: item.isActive })),
@@ -253,7 +267,7 @@ export class MasterReportComponent implements OnInit {
       students: students.map(item => ({
         insertedDate: item.createdAt,
         label: `${item.firstName} ${item.lastName}`,
-        active: item.isActive !== false,
+        active: item.isActive !== false && !item.deletedDate,
         deletedDate: item.deletedDate,
         isActive: item.isActive,
         createdAt: item.createdAt
@@ -290,6 +304,7 @@ export class MasterReportComponent implements OnInit {
     this.buildHistoryRows(this.selectedMetric);
   }
 
+  // create time buckets for the chart period
   private createBuckets(period: ChartPeriod): { start: Date; end: Date; label: string; count: number; items: string[]; }[] {
     const now = new Date();
     const buckets = [] as { start: Date; end: Date; label: string; count: number; items: string[]; }[];
@@ -307,17 +322,19 @@ export class MasterReportComponent implements OnInit {
         anchor.setDate(anchor.getDate() - anchor.getDay());
       }
       const rangeCount = period === 'weeks' ? 8 : 7;
+      const stepDays = period === 'weeks' ? 7 : 1;
       for (let index = rangeCount - 1; index >= 0; index--) {
         const start = new Date(anchor);
-        start.setDate(anchor.getDate() - (index * 7));
+        start.setDate(anchor.getDate() - (index * stepDays));
         const end = new Date(start);
-        end.setDate(start.getDate() + (period === 'weeks' ? 7 : 1));
+        end.setDate(start.getDate() + stepDays);
         buckets.push({ start, end, label: period === 'weeks' ? this.formatWeekLabel(start, end) : start.toLocaleString('en-US', { weekday: 'short', day: 'numeric' }), count: 0, items: [] });
       }
     }
     return buckets;
   }
 
+  // format a label for a week bucket
   private formatWeekLabel(start: Date, end: Date): string {
     const last = new Date(end);
     last.setDate(last.getDate() - 1);
@@ -326,29 +343,34 @@ export class MasterReportComponent implements OnInit {
     return `${startLabel}–${endLabel}`;
   }
 
+  // parse a date string into a Date
   private parseDate(value: string): Date {
-    return new Date(value.endsWith('Z') ? value : value + 'Z');
+    return new Date(value);
   }
 
+  // build the report rows for the selected metric
   private buildReportRows(): void {
     const { boards, schools, classes, streams, specializations, students } = this.filteredEntities();
     const search = this.searchText.trim().toLowerCase();
     switch (this.selectedMetric) {
       case 'boards':
-        this.reportRows = boards.map(board => ({
-          title: board.universityName || board.name || 'Board',
-          subtitle: `${this.schools.filter(s => s.schoolBoardName === (board.universityName || board.name)).length} schools`,
-          metric: 'Board',
-          count: this.schools.filter(s => s.schoolBoardName === (board.universityName || board.name)).length,
-          extra: board.insertedDate ? new Date(board.insertedDate).toLocaleDateString() : 'N/A'
-        })).sort((a, b) => b.count - a.count);
+        this.reportRows = boards.map(board => {
+          const name = board.universityName || board.name || 'Board';
+          return {
+            title: name,
+            subtitle: `${schools.filter(s => s.schoolBoardName === name).length} school`,
+            metric: 'Board',
+            count: schools.filter(s => s.schoolBoardName === name).length,
+            extra: board.insertedDate ? new Date(board.insertedDate).toLocaleDateString() : 'N/A'
+          };
+        }).sort((a, b) => b.count - a.count);
         break;
       case 'schools':
         this.reportRows = schools.map(school => ({
           title: school.name,
           subtitle: school.schoolBoardName || 'Board unknown',
           metric: 'School',
-          count: this.classes.filter(c => c.schoolName === school.name).length,
+          count: classes.filter(c => c.schoolName === school.name).length,
           extra: school.insertedDate ? new Date(school.insertedDate).toLocaleDateString() : 'N/A'
         })).sort((a, b) => b.count - a.count);
         break;
@@ -357,7 +379,7 @@ export class MasterReportComponent implements OnInit {
           title: `${cls.name} ${cls.section}`,
           subtitle: `${cls.schoolName || 'School'} · ${cls.sessionName || 'Session'}`,
           metric: 'Class',
-          count: this.streams.filter(s => s.classId === cls.id).length,
+          count: streams.filter(s => s.classId === cls.id).length,
           extra: cls.insertedDate ? new Date(cls.insertedDate).toLocaleDateString() : 'N/A'
         })).sort((a, b) => b.count - a.count);
         break;
@@ -366,7 +388,7 @@ export class MasterReportComponent implements OnInit {
           title: stream.name,
           subtitle: `${stream.schoolName || 'School'} · ${stream.className || 'Class'}`,
           metric: 'Stream',
-          count: this.specializations.filter(sp => sp.streamName === stream.name && sp.className === stream.className).length,
+          count: specializations.filter(sp => sp.streamName === stream.name && sp.className === stream.className).length,
           extra: stream.insertedDate ? new Date(stream.insertedDate).toLocaleDateString() : 'N/A'
         })).sort((a, b) => b.count - a.count);
         break;
@@ -397,36 +419,46 @@ export class MasterReportComponent implements OnInit {
     }
   }
 
+  // build recent activity rows from all entities
   private buildActivityRows(): void {
     const { boards, schools, classes, streams, specializations, students } = this.filteredEntities();
-    const items = [
-      ...boards.slice(-6).reverse().map(board => ({ icon: 'bi-bank', label: 'Board event', detail: `${board.universityName || board.name} ${board.deletedDate ? 'removed' : 'added'}`, when: board.insertedDate ? new Date(board.insertedDate).toLocaleDateString() : 'Unknown' })),
-      ...schools.slice(-6).reverse().map(school => ({ icon: 'bi-building-add', label: 'School event', detail: `${school.name} ${school.isActive === false ? 'removed' : 'added'}`, when: school.insertedDate ? new Date(school.insertedDate).toLocaleDateString() : 'Unknown' })),
-      ...classes.slice(-6).reverse().map(cls => ({ icon: 'bi-backpack4', label: 'Class event', detail: `${cls.name} ${cls.section} ${cls.isActive === false ? 'removed' : 'added'}`, when: cls.insertedDate ? new Date(cls.insertedDate).toLocaleDateString() : 'Unknown' })),
-      ...streams.slice(-6).reverse().map(stream => ({ icon: 'bi-signpost-split', label: 'Stream event', detail: `${stream.name} ${stream.isActive === false ? 'removed' : 'added'}`, when: stream.insertedDate ? new Date(stream.insertedDate).toLocaleDateString() : 'Unknown' })),
-      ...specializations.slice(-6).reverse().map(spec => ({ icon: 'bi-bookmark-star', label: 'Specialization event', detail: `${spec.name} ${spec.isActive === false ? 'removed' : 'added'}`, when: spec.insertedDate ? new Date(spec.insertedDate).toLocaleDateString() : 'Unknown' })),
-      ...students.slice(-6).reverse().map(student => ({
+    type ActivityItem = { icon: string; label: string; detail: string; when: string; sortTime: number };
+    const toTime = (value?: string) => value ? new Date(value).getTime() : 0;
+    const items: ActivityItem[] = [
+      ...boards.map(board => ({ icon: 'bi-bank', label: 'Board event', detail: `${board.universityName || board.name} ${board.deletedDate ? 'removed' : 'added'}`, when: board.insertedDate ? new Date(board.insertedDate).toLocaleDateString() : 'Unknown', sortTime: toTime(board.insertedDate) })),
+      ...schools.map(school => ({ icon: 'bi-building-add', label: 'School event', detail: `${school.name} ${school.isActive === false ? 'removed' : 'added'}`, when: school.insertedDate ? new Date(school.insertedDate).toLocaleDateString() : 'Unknown', sortTime: toTime(school.insertedDate) })),
+      ...classes.map(cls => ({ icon: 'bi-backpack4', label: 'Class event', detail: `${cls.name} ${cls.section} ${cls.isActive === false ? 'removed' : 'added'}`, when: cls.insertedDate ? new Date(cls.insertedDate).toLocaleDateString() : 'Unknown', sortTime: toTime(cls.insertedDate) })),
+      ...streams.map(stream => ({ icon: 'bi-signpost-split', label: 'Stream event', detail: `${stream.name} ${stream.isActive === false ? 'removed' : 'added'}`, when: stream.insertedDate ? new Date(stream.insertedDate).toLocaleDateString() : 'Unknown', sortTime: toTime(stream.insertedDate) })),
+      ...specializations.map(spec => ({ icon: 'bi-bookmark-star', label: 'Specialization event', detail: `${spec.name} ${spec.isActive === false ? 'removed' : 'added'}`, when: spec.insertedDate ? new Date(spec.insertedDate).toLocaleDateString() : 'Unknown', sortTime: toTime(spec.insertedDate) })),
+      ...students.map(student => ({
         icon: 'bi-person-circle',
         label: 'Student event',
         detail: `${student.firstName} ${student.lastName} ${student.isActive === false ? 'removed' : 'added'}`,
         when: student.isActive === false
           ? student.deletedDate ? new Date(student.deletedDate).toLocaleDateString() : 'Unknown'
-          : student.createdAt ? new Date(student.createdAt).toLocaleDateString() : 'Unknown'
+          : student.createdAt ? new Date(student.createdAt).toLocaleDateString() : 'Unknown',
+        sortTime: toTime(student.isActive === false ? student.deletedDate : student.createdAt)
       })),
     ];
 
-    this.activityRows = items.slice(0, 8);
+    this.activityRows = items
+      .sort((a, b) => b.sortTime - a.sortTime)
+      .slice(0, 8)
+      .map(({ icon, label, detail, when }) => ({ icon, label, detail, when }));
   }
 
+  // compute school counts per board for the breakdown
   private buildBoardBreakdown(): void {
-    const schoolCount = this.schools.length;
+    const { schools } = this.filteredEntities();
+    const schoolCount = schools.length;
     const counts = this.boardOptions.map(board => {
-      const value = this.schools.filter(s => s.schoolBoardName === board).length;
+      const value = schools.filter(s => s.schoolBoardName === board).length;
       return { name: board, value, pct: schoolCount ? Math.max(4, Math.round((value / schoolCount) * 100)) : 0 };
     }).sort((a, b) => b.value - a.value);
     this.boardBreakdown = counts;
   }
 
+  // build the recent history rows for the selected metric
   private buildHistoryRows(metric: MasterMetric): void {
     const { boards, schools, classes, streams, specializations, students } = this.filteredEntities();
     const items = {
@@ -457,6 +489,7 @@ export class MasterReportComponent implements OnInit {
     });
   }
 
+  // return the count of records for the selected metric
   getSelectedCount(): number {
     const { boards, schools, classes, streams, specializations, students } = this.filteredEntities();
     return {
@@ -469,6 +502,7 @@ export class MasterReportComponent implements OnInit {
     }[this.selectedMetric];
   }
 
+  // return the count of deleted or inactive records for the selected metric
   getDeletionCount(): number {
     const { boards, schools, classes, streams, specializations, students } = this.filteredEntities();
     const records = {
@@ -482,10 +516,12 @@ export class MasterReportComponent implements OnInit {
     return records.filter(item => !!item.deletedDate || item.isActive === false).length;
   }
 
+  // compute the percentage point of a count in the chart
   linePoint(value: number): number {
     return this.chartMax ? Math.round((value / this.chartMax) * 100) : 0;
   }
 
+  // export the current report as a PDF
   exportPdf(): void {
     import('jspdf').then(({ jsPDF }) =>
       import('jspdf-autotable').then((mod) => {
@@ -529,6 +565,7 @@ export class MasterReportComponent implements OnInit {
     );
   }
 
+  // export the current report as an Excel file
   exportExcel(): void {
     import('xlsx').then((XLSX) => {
       const data = this.buildExportData();
@@ -540,6 +577,7 @@ export class MasterReportComponent implements OnInit {
     });
   }
 
+  // build the export headers and rows for the selected metric
   private buildExportData(): { title: string; headers: string[]; rows: (string | number)[][]; } {
     const { boards, schools, classes, streams, specializations, students } = this.filteredEntities();
     const fmtDate = (value?: string) => value ? new Date(value).toLocaleDateString() : 'N/A';
@@ -647,6 +685,7 @@ export class MasterReportComponent implements OnInit {
     }
   }
 
+  // build the SVG point list for the line chart
   lineSvgPoints(): string {
     if (!this.chartData.length) {
       return '';
@@ -658,6 +697,7 @@ export class MasterReportComponent implements OnInit {
     }).join(' ');
   }
 
+  // build the conic-gradient background for the pie chart
   pieChartBackground(): string {
     const total = this.pieSlices.reduce((sum, slice) => sum + slice.value, 0);
     if (!total) {
@@ -669,10 +709,12 @@ export class MasterReportComponent implements OnInit {
     return `conic-gradient(${first.color} 0% ${firstPct}%, ${second.color} ${firstPct}% 100%)`;
   }
 
+  // compute the bar fill height percentage for a count
   barFill(count: number): number {
     return this.chartMax ? Math.max(6, Math.round((count / this.chartMax) * 100)) : 0;
   }
 
+  // return the display label for a metric
   chartLabel(metric: MasterMetric): string {
     return this.metricLabels[metric];
   }

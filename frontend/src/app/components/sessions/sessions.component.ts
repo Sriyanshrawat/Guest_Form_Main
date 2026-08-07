@@ -37,6 +37,7 @@ export class SessionsComponent implements OnInit {
       : this.sessions.filter((item) => item.name.toLowerCase().includes(term));
   }
 
+  // route grid action to edit or delete
   handleGridAction(event: { id: string; row: SessionRecord }): void {
     event.id === 'edit' ? this.editSession(event.row) : this.deleteSession(event.row);
   }

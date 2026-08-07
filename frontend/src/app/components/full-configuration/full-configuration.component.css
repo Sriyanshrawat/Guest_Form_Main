@@ -26,6 +26,30 @@
   --paper: #111827; --surface: #1f2937; --ink: #f8fafc; --ink-soft: #cbd5e1;
   --ink-faint: #94a3b8; --rule: #334155; --rule-strong: #475569;
   --brass-soft: #26354a; --success-bg: #173322; --error-bg: #3a1c22;
+  --indigo: #a5b4fc; --indigo-soft: #1e293b;
+}
+
+:host-context(.dark-mode) .lookup-card--details {
+  background: linear-gradient(180deg, var(--surface) 0%, #182135 100%);
+}
+
+:host-context(.dark-mode) .detail-tile,
+:host-context(.dark-mode) .detail-block {
+  background: #1a2332;
+}
+
+:host-context(.dark-mode) .detail-block code {
+  color: #e2c78f;
+}
+
+:host-context(.dark-mode) .lookup-form select {
+  background-color: #1f2937;
+  color: #e5e7eb;
+}
+
+:host-context(.dark-mode) .lookup-form select:disabled {
+  background-color: #16202e;
+  color: #64748b;
 }
 
 * { box-sizing: border-box; }
@@ -166,12 +190,12 @@
 .button--quiet { background: transparent; color: var(--ink-soft); border-color: var(--rule-strong); }
 .button--quiet:hover { color: var(--ink); border-color: var(--brass); }
 .button--primary {
-  border-color: var(--brass-dark);
-  background: linear-gradient(180deg, var(--brass) 0%, var(--brass-dark) 100%);
+  border-color: #b07f2b;
+  background: linear-gradient(180deg, #d8a64a 0%, #b07f2b 100%);
   color: #fff;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 2px 6px rgba(176, 127, 43, .3);
 }
-.button--primary:hover { box-shadow: 0 8px 20px rgba(122, 90, 36, .32); }
+.button--primary:hover { box-shadow: 0 10px 24px rgba(176, 127, 43, .4); background: linear-gradient(180deg, #e5b45a 0%, #a57525 100%); border-color: #a57525; }
 .button--primary:disabled { opacity: .55; cursor: not-allowed; box-shadow: none; }
 
 .notice {

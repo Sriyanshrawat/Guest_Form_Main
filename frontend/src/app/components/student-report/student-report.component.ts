@@ -7,7 +7,7 @@ import { Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 
 import { StudentService } from '../../services/student.service';
-import { Student } from '../../models/student.model';
+import { StudentSubmission } from '../../models/student.model';
 
 @Component({
   selector: 'app-student-report',
@@ -20,8 +20,8 @@ export class StudentReportComponent implements OnInit {
   private readonly studentService = inject(StudentService);
   private readonly router = inject(Router);
 
-  students: Student[] = [];
-  filteredStudents: Student[] = [];
+  students: StudentSubmission[] = [];
+  filteredStudents: StudentSubmission[] = [];
   loading = false;
   errorMessage = '';
   actionMessage = '';
@@ -31,10 +31,7 @@ export class StudentReportComponent implements OnInit {
   filterSchool = '';
   filterClass = '';
   filterStatus = '';
-  viewingStudent: Student | null = null;
-  rejectingStudent: Student | null = null;
-  rejectNote = '';
-  submittingReview = false;
+  viewingStudent: StudentSubmission | null = null;
 
   readonly statusOptions = ['Pending', 'Approved', 'Rejected'] as const;
 
@@ -52,7 +49,7 @@ export class StudentReportComponent implements OnInit {
   loadStudents(): void {
     this.loading = true;
     this.errorMessage = '';
-    this.studentService.getStudents().subscribe({
+    this.studentService.getSubmissions().subscribe({
       next: data => {
         this.students = data;
         this.applyFilters();
@@ -76,7 +73,7 @@ export class StudentReportComponent implements OnInit {
 
   // board options
   get boardOptions(): string[] {
-    return [...new Set(this.students.map(s => s.boardName).filter((n): n is string => !!n))].sort();
+    return [...new Set(this.students.map(s => s.boardName).filter((n): n is string => !!n))].sort((a, b) => a.localeCompare(b));
   }
 
   // school options
@@ -84,7 +81,7 @@ export class StudentReportComponent implements OnInit {
     const pool = this.filterBoard
       ? this.students.filter(s => s.boardName === this.filterBoard)
       : this.students;
-    return [...new Set(pool.map(s => s.schoolName).filter((n): n is string => !!n))].sort();
+    return [...new Set(pool.map(s => s.schoolName).filter((n): n is string => !!n))].sort((a, b) => a.localeCompare(b));
   }
 
   // class options
@@ -94,7 +91,7 @@ export class StudentReportComponent implements OnInit {
     if (this.filterSchool) pool = pool.filter(s => s.schoolName === this.filterSchool);
     return [...new Set(pool.map(s =>
       s.className + (s.classSection ? ' - ' + s.classSection : '')
-    ))].sort();
+    ))].sort((a, b) => a.localeCompare(b));
   }
 
   // clear filters
@@ -135,7 +132,7 @@ export class StudentReportComponent implements OnInit {
   get pendingCount(): number { return this.students.filter(s => s.status !== 'Approved').length; }
 
   // status badge class
-  statusClass(s: Student): string {
+  statusClass(s: StudentSubmission): string {
     switch (s.status) {
       case 'Approved': return 'status-badge status-badge--approved';
       case 'Rejected': return 'status-badge status-badge--rejected';
@@ -143,64 +140,13 @@ export class StudentReportComponent implements OnInit {
     }
   }
 
-  // approve a submission
-  approveStudent(s: Student): void {
-    if (s.id == null) return;
-    if (!confirm(`Approve "${s.firstName} ${s.lastName}"? The student will be notified.`)) return;
-    this.actionMessage = '';
-    this.studentService.approveStudent(s.id).subscribe({
-      next: () => {
-        this.actionMessage = `Approved ${s.firstName} ${s.lastName}.`;
-        this.loadStudents();
-      },
-      error: (error: HttpErrorResponse) => {
-        this.errorMessage = this.adminErrorMessage(error, 'approve the student');
-      }
-    });
-  }
-
-  // open reject modal
-  openRejectModal(s: Student): void {
-    this.rejectingStudent = s;
-    this.rejectNote = s.reviewNote ?? '';
-    this.actionMessage = '';
-  }
-
-  // close reject modal
-  closeRejectModal(): void {
-    if (this.submittingReview) return;
-    this.rejectingStudent = null;
-    this.rejectNote = '';
-  }
-
-  // confirm rejection with optional note
-  confirmReject(): void {
-    const s = this.rejectingStudent;
-    if (!s || s.id == null) return;
-    this.submittingReview = true;
-    this.errorMessage = '';
-    this.studentService.rejectStudent(s.id, this.rejectNote.trim() || undefined).subscribe({
-      next: () => {
-        this.submittingReview = false;
-        this.actionMessage = `Rejected ${s.firstName} ${s.lastName}.`;
-        this.rejectingStudent = null;
-        this.rejectNote = '';
-        this.loadStudents();
-      },
-      error: (error: HttpErrorResponse) => {
-        this.submittingReview = false;
-        this.errorMessage = this.adminErrorMessage(error, 'reject the student');
-      }
-    });
-  }
-
   // initials
-  initials(s: Student): string {
+  initials(s: StudentSubmission): string {
     return ((s.firstName[0] ?? '') + (s.lastName[0] ?? '')).toUpperCase();
   }
 
   // avatar color
-  avatarColor(s: Student): string {
+  avatarColor(s: StudentSubmission): string {
     const key = s.firstName + s.lastName;
     let hash = 0;
     for (let i = 0; i < key.length; i++) {
@@ -210,21 +156,21 @@ export class StudentReportComponent implements OnInit {
   }
 
   // view details
-  viewDetails(s: Student): void {
+  viewDetails(s: StudentSubmission): void {
     this.viewingStudent = s;
   }
 
   // edit student
-  editStudent(s: Student): void {
+  editStudent(s: StudentSubmission): void {
     if (s.id == null) return;
     this.router.navigate(['/submit'], { queryParams: { edit: s.id } });
   }
 
   // delete student
-  deleteStudent(s: Student): void {
+  deleteStudent(s: StudentSubmission): void {
     if (s.id == null) return;
-    if (!confirm(`Delete student "${s.firstName} ${s.lastName}"?`)) return;
-    this.studentService.deleteStudent(s.id).subscribe({
+    if (!confirm(`Delete application for "${s.firstName} ${s.lastName}"?`)) return;
+    this.studentService.deleteSubmission(s.id).subscribe({
       next: () => this.loadStudents(),
       error: (error: HttpErrorResponse) => {
         this.errorMessage = error.status === 403

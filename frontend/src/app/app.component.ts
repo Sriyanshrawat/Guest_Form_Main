@@ -25,6 +25,7 @@ export class AppComponent implements OnInit {
   passwordMessage = '';
   passwordMessageType: 'error' | 'success' = 'error';
 
+  // builds the password change reactive form
   constructor(public authService: AuthService, private router: Router, private fb: FormBuilder) {
     this.passwordForm = this.fb.group({
       currentPassword: ['', Validators.required],
@@ -166,6 +167,7 @@ export class AppComponent implements OnInit {
       this.router.url.startsWith('/student-dashboard') ||
       this.router.url.startsWith('/dashboard') ||
       this.router.url.startsWith('/admin') ||
+      this.router.url.startsWith('/applications') ||
       this.router.url.startsWith('/master-report') ||
       this.router.url.startsWith('/education-board') ||
       this.router.url.startsWith('/school') ||

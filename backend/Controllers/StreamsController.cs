@@ -15,6 +15,7 @@ namespace GuestApi.Controllers
     {
         private readonly DapperContext _db;
 
+        // injects the Dapper database context
         public StreamsController(DapperContext db) => _db = db;
 
         // get all streams
@@ -113,6 +114,14 @@ namespace GuestApi.Controllers
                 commandType: CommandType.StoredProcedure);
             if (activeStudents > 0)
                 return Conflict(new { message = "Cannot delete this stream because it has active students. Remove the students first." });
+
+            // guard: refuse delete while active specializations reference this stream
+            var activeSpecializations = await conn.QuerySingleAsync<int>(
+                StoredProcedures.Streams_ActiveSpecializationsCount,
+                new { pStreamId = id },
+                commandType: CommandType.StoredProcedure);
+            if (activeSpecializations > 0)
+                return Conflict(new { message = "Cannot delete this stream because it has active specializations. Remove the specializations first." });
 
             // soft delete
             await conn.ExecuteAsync(

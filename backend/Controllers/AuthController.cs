@@ -24,6 +24,7 @@ namespace GuestApi.Controllers
         private readonly IMemoryCache _captchaCache;
         private readonly IHostEnvironment _env;
 
+        // resolves dependencies for DB access, config, CAPTCHA cache, and environment
         public AuthController(DapperContext db, IConfiguration config, IMemoryCache captchaCache, IHostEnvironment env)
         {
             _db = db;

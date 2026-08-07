@@ -64,6 +64,7 @@ export class ClassesComponent implements OnInit {
         );
   }
 
+  // route grid action to edit or delete
   handleGridAction(event: { id: string; row: ClassRecord }): void {
     event.id === 'edit' ? this.editClass(event.row) : this.deleteClass(event.row);
   }

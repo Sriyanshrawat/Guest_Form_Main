@@ -82,7 +82,7 @@
           </ng-container>
           <ng-container *ngIf="selectedChartKind === 'line'">
             <div class="line-plot">
-              <div class="line-grid" *ngFor="let point of chartData; let i = index" [style.left.%]="(i / (chartData.length - 1)) * 100">
+              <div class="line-grid" *ngFor="let point of chartData; let i = index" [style.left.%]="chartData.length === 1 ? 50 : (i / (chartData.length - 1)) * 100">
                 <span class="line-dot" [style.bottom.%]="linePoint(point.count)"></span>
                 <span class="line-label">{{ point.count }}</span>
               </div>

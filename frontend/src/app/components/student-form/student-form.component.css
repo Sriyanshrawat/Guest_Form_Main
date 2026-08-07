@@ -585,9 +585,9 @@ input[type="number"] {
   flex: 1;
   width: 100%;
   height: 3.4rem;
-  border: 1px solid var(--brass-dark);
+  border: 1px solid #b07f2b;
   border-radius: 10px;
-  background: linear-gradient(180deg, var(--brass) 0%, var(--brass-dark) 100%);
+  background: linear-gradient(180deg, #d8a64a 0%, #b07f2b 100%);
   color: white;
   font-size: 0.95rem;
   font-weight: 700;
@@ -600,14 +600,16 @@ input[type="number"] {
   transition:
     transform 0.15s ease,
     box-shadow 0.15s ease;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 2px 6px rgba(176, 127, 43, 0.3);
   position: relative;
   overflow: hidden;
 }
 
 .submit-btn:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 10px 24px rgba(122, 90, 36, 0.32);
+  background: linear-gradient(180deg, #e5b45a 0%, #a57525 100%);
+  border-color: #a57525;
+  box-shadow: 0 10px 24px rgba(176, 127, 43, 0.4);
 }
 
 .submit-btn:active {
@@ -839,6 +841,79 @@ input[type="number"] {
   font-weight: 700;
   letter-spacing: 0.07em;
   text-transform: uppercase;
+}
+
+:host-context(.dark-mode) .student-grid {
+  --ag-background-color: #1f2937;
+  --ag-foreground-color: #e5e7eb;
+  --ag-header-background-color: #111827;
+  --ag-header-foreground-color: #94a3b8;
+  --ag-border-color: #334155;
+  --ag-row-border-color: #334155;
+  --ag-odd-row-background-color: #1f2937;
+  --ag-row-hover-color: #26354a;
+  --ag-selected-row-background-color: rgba(150, 112, 47, 0.25);
+  --ag-input-border-color: #475569;
+  --ag-input-focus-border-color: #c99a4f;
+}
+
+:host-context(.dark-mode) .grid-action {
+  border-color: #475569;
+  color: #cbd5e1;
+  background: #1f2937;
+}
+
+:host-context(.dark-mode) .grid-action:hover {
+  border-color: #c99a4f;
+  color: #f5edda;
+  background: #26354a;
+}
+
+:host-context(.dark-mode) .grid-action.delete {
+  color: #f8b4b0;
+  border-color: #7f3f3a;
+}
+
+:host-context(.dark-mode) .grid-action.delete:hover {
+  background: #3a1c22;
+  border-color: #c0594f;
+}
+
+:host-context(.dark-mode) .table-card tbody tr:hover {
+  background: #26354a;
+}
+
+:host-context(.dark-mode) .badge-male {
+  background: #1e3a5f;
+  color: #bfdbfe;
+  border-color: #2d4a72;
+}
+
+:host-context(.dark-mode) .badge-female {
+  background: #4c1d3d;
+  color: #fbcfe8;
+  border-color: #5f2549;
+}
+
+:host-context(.dark-mode) .badge-class {
+  background: #26304d;
+  color: #c7d2fe;
+  border-color: #37466b;
+}
+
+:host-context(.dark-mode) .edit-btn {
+  background: #26304d;
+  border-color: #37466b;
+  color: #a5b4fc;
+}
+
+:host-context(.dark-mode) .edit-btn:hover {
+  background: #a5b4fc;
+  color: #111827;
+}
+
+:host-context(.dark-mode) .delete-btn {
+  border-color: #7f3f3a;
 }
 
 .student-grid .ag-floating-filter-input,

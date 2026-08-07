@@ -46,7 +46,8 @@ export class CaptchaComponent implements OnInit {
   loading = false;
   errorMessage = '';
 
-  constructor(private authService: AuthService) {}
+  // inject auth service for CAPTCHA generation
+constructor(private authService: AuthService) {}
 
   // on init
   ngOnInit(): void {

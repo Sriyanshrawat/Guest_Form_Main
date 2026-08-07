@@ -241,6 +241,54 @@ CREATE TABLE Students (
 
     CONSTRAINT UX_Students_Email UNIQUE (Email)
 ) ENGINE=InnoDB;
+
+-- ============================================================
+-- STUDENT SUBMISSIONS (application queue)
+-- A student's registration lives here until the admin approves it.
+-- Only APPROVED submissions are copied into the Students table.
+-- ============================================================
+CREATE TABLE StudentSubmissions (
+    Id               INT AUTO_INCREMENT PRIMARY KEY,
+    FirstName        VARCHAR(100) NOT NULL,
+    LastName         VARCHAR(100) NOT NULL,
+    Gender           VARCHAR(10) NOT NULL,
+    DateOfBirth      DATETIME(6) NOT NULL,
+    Email            VARCHAR(150) NOT NULL,
+    PhoneNumber      VARCHAR(20) NULL,
+    Address          VARCHAR(200) NOT NULL,
+    BloodGroup       VARCHAR(10) NULL,
+    FatherName       VARCHAR(150) NOT NULL,
+    MotherName       VARCHAR(150) NOT NULL,
+    FatherPhone      VARCHAR(20) NOT NULL,
+    MotherPhone      VARCHAR(20) NOT NULL,
+    EmergencyContactName  VARCHAR(150) NULL,
+    EmergencyContactPhone VARCHAR(20) NULL,
+    AadhaarNumber    VARCHAR(20) NULL,
+    Nationality      VARCHAR(50) NULL,
+    Religion         VARCHAR(50) NULL,
+    MotherTongue     VARCHAR(50) NULL,
+    Category         VARCHAR(20) NULL,
+    EnrollmentNumber VARCHAR(20) NULL,
+    RollNumber       VARCHAR(20) NULL,
+    BoardId          INT NOT NULL,
+    SessionId        INT NOT NULL,
+    SchoolId         INT NOT NULL,
+    ClassId          INT NOT NULL,
+    StreamId         INT NULL,
+    SpecializationId INT NULL,
+    Username         VARCHAR(100) NOT NULL,
+    StudentId        INT NULL,
+    IsActive         TINYINT(1) NOT NULL DEFAULT 1,
+    Status           VARCHAR(20) NOT NULL DEFAULT 'Pending',
+    ReviewNote       VARCHAR(500) NULL,
+    ReviewedBy       VARCHAR(100) NULL,
+    ReviewedDate     DATETIME(6) NULL,
+    UpdatedBy        VARCHAR(100) NULL,
+    UpdatedDate      DATETIME(6) NULL,
+    DeletedBy        VARCHAR(100) NULL,
+    DeletedDate      DATETIME(6) NULL,
+    CreatedAt        DATETIME(6) NOT NULL
+) ENGINE=InnoDB;
 -- ============================================================
 -- STORED PROCEDURES (all 80)
 -- ============================================================
@@ -893,6 +941,13 @@ BEGIN
     SELECT COUNT(*) FROM Students WHERE StreamId = pStreamId AND IsActive = 1 AND DeletedDate IS NULL;
 END$$
 
+-- Counts active specializations that still reference this stream.
+DROP PROCEDURE IF EXISTS sp_Streams_ActiveSpecializationsCount$$
+CREATE PROCEDURE sp_Streams_ActiveSpecializationsCount(IN pStreamId INT)
+BEGIN
+    SELECT COUNT(*) FROM Specializations WHERE StreamId = pStreamId AND IsActive = 1 AND DeletedDate IS NULL;
+END$$
+
 -- Inserts a stream and returns the created row.
 DROP PROCEDURE IF EXISTS sp_Stream_Create$$
 
@@ -1507,7 +1562,7 @@ BEGIN
            s.IsActive, s.Status, s.ReviewNote, s.ReviewedBy, s.ReviewedDate,
            s.InsertedBy, s.UpdatedBy, s.UpdatedDate, s.DeletedDate,
            s.CreatedAt
-    FROM Students s
+     FROM Students s
     LEFT JOIN SchoolBoards b ON b.Id = s.BoardId
     LEFT JOIN Sessions ses ON ses.Id = s.SessionId
     LEFT JOIN Schools sch ON sch.Id = s.SchoolId
@@ -1515,6 +1570,391 @@ BEGIN
     LEFT JOIN Streams st ON st.Id = s.StreamId
     LEFT JOIN Specializations sp ON sp.Id = s.SpecializationId
     WHERE s.Id = pId;
+END$$
+
+-- ============================================================================
+-- STUDENT SUBMISSIONS (application queue)
+-- Submissions wait here (Pending) until an admin approves or rejects them.
+-- Approving copies the row into Students (one-time). Rejecting marks it only.
+-- ============================================================================
+
+-- Returns the number of active (non-deleted) submissions by pUsername.
+DROP PROCEDURE IF EXISTS sp_StudentSubmission_GetAll$$
+
+CREATE PROCEDURE sp_StudentSubmission_GetAll(IN pIncludeInactive TINYINT)
+BEGIN
+    SELECT sub.Id, sub.FirstName, sub.LastName, sub.Gender, sub.DateOfBirth, sub.Email,
+           sub.PhoneNumber, sub.Address, sub.BloodGroup, sub.FatherName, sub.MotherName,
+           sub.FatherPhone, sub.MotherPhone, sub.EmergencyContactName,
+           sub.EmergencyContactPhone, sub.AadhaarNumber, sub.Nationality, sub.Religion,
+           sub.MotherTongue, sub.Category, sub.EnrollmentNumber, sub.RollNumber,
+           sub.BoardId, b.UniversityName AS BoardName,
+           sub.SessionId, ses.Name AS SessionName,
+           sub.SchoolId, sch.Name AS SchoolName,
+           sub.ClassId, c.`Class` AS ClassName, c.Section AS ClassSection,
+           sub.StreamId, st.Name AS StreamName,
+           sub.SpecializationId, sp.Name AS SpecializationName,
+           sub.Username, sub.StudentId, sub.IsActive, sub.Status, sub.ReviewNote,
+           sub.ReviewedBy, sub.ReviewedDate, sub.UpdatedBy, sub.UpdatedDate,
+           sub.DeletedDate, sub.CreatedAt
+    FROM StudentSubmissions sub
+    LEFT JOIN SchoolBoards b ON b.Id = sub.BoardId
+    LEFT JOIN Sessions ses ON ses.Id = sub.SessionId
+    LEFT JOIN Schools sch ON sch.Id = sub.SchoolId
+    LEFT JOIN Classes c ON c.Id = sub.ClassId
+    LEFT JOIN Streams st ON st.Id = sub.StreamId
+    LEFT JOIN Specializations sp ON sp.Id = sub.SpecializationId
+    WHERE (pIncludeInactive = 1 OR sub.IsActive = 1)
+    ORDER BY sub.CreatedAt DESC;
+END$$
+
+-- Returns a single submission by id (joined names).
+DROP PROCEDURE IF EXISTS sp_StudentSubmission_GetById$$
+
+CREATE PROCEDURE sp_StudentSubmission_GetById(IN pId INT)
+BEGIN
+    SELECT sub.Id, sub.FirstName, sub.LastName, sub.Gender, sub.DateOfBirth, sub.Email,
+           sub.PhoneNumber, sub.Address, sub.BloodGroup, sub.FatherName, sub.MotherName,
+           sub.FatherPhone, sub.MotherPhone, sub.EmergencyContactName,
+           sub.EmergencyContactPhone, sub.AadhaarNumber, sub.Nationality, sub.Religion,
+           sub.MotherTongue, sub.Category, sub.EnrollmentNumber, sub.RollNumber,
+           sub.BoardId, b.UniversityName AS BoardName,
+           sub.SessionId, ses.Name AS SessionName,
+           sub.SchoolId, sch.Name AS SchoolName,
+           sub.ClassId, c.`Class` AS ClassName, c.Section AS ClassSection,
+           sub.StreamId, st.Name AS StreamName,
+           sub.SpecializationId, sp.Name AS SpecializationName,
+           sub.Username, sub.StudentId, sub.IsActive, sub.Status, sub.ReviewNote,
+           sub.ReviewedBy, sub.ReviewedDate, sub.UpdatedBy, sub.UpdatedDate,
+           sub.DeletedDate, sub.CreatedAt
+    FROM StudentSubmissions sub
+    LEFT JOIN SchoolBoards b ON b.Id = sub.BoardId
+    LEFT JOIN Sessions ses ON ses.Id = sub.SessionId
+    LEFT JOIN Schools sch ON sch.Id = sub.SchoolId
+    LEFT JOIN Classes c ON c.Id = sub.ClassId
+    LEFT JOIN Streams st ON st.Id = sub.StreamId
+    LEFT JOIN Specializations sp ON sp.Id = sub.SpecializationId
+    WHERE sub.Id = pId
+    LIMIT 1;
+END$$
+
+-- Returns the active submissions the current user submitted.
+DROP PROCEDURE IF EXISTS sp_StudentSubmission_GetMy$$
+
+CREATE PROCEDURE sp_StudentSubmission_GetMy(IN pUsername VARCHAR(100))
+BEGIN
+    SELECT sub.Id, sub.FirstName, sub.LastName, sub.Gender, sub.DateOfBirth, sub.Email,
+           sub.PhoneNumber, sub.Address, sub.BloodGroup, sub.FatherName, sub.MotherName,
+           sub.FatherPhone, sub.MotherPhone, sub.EmergencyContactName,
+           sub.EmergencyContactPhone, sub.AadhaarNumber, sub.Nationality, sub.Religion,
+           sub.MotherTongue, sub.Category, sub.EnrollmentNumber, sub.RollNumber,
+           sub.BoardId, b.UniversityName AS BoardName,
+           sub.SessionId, ses.Name AS SessionName,
+           sub.SchoolId, sch.Name AS SchoolName,
+           sub.ClassId, c.`Class` AS ClassName, c.Section AS ClassSection,
+           sub.StreamId, st.Name AS StreamName,
+           sub.SpecializationId, sp.Name AS SpecializationName,
+           sub.Username, sub.StudentId, sub.IsActive, sub.Status, sub.ReviewNote,
+           sub.ReviewedBy, sub.ReviewedDate, sub.UpdatedBy, sub.UpdatedDate,
+           sub.DeletedDate, sub.CreatedAt
+    FROM StudentSubmissions sub
+    LEFT JOIN SchoolBoards b ON b.Id = sub.BoardId
+    LEFT JOIN Sessions ses ON ses.Id = sub.SessionId
+    LEFT JOIN Schools sch ON sch.Id = sub.SchoolId
+    LEFT JOIN Classes c ON c.Id = sub.ClassId
+    LEFT JOIN Streams st ON st.Id = sub.StreamId
+    LEFT JOIN Specializations sp ON sp.Id = sub.SpecializationId
+    WHERE sub.Username = pUsername AND sub.IsActive = 1
+    ORDER BY sub.CreatedAt DESC;
+END$$
+
+-- Counts active submissions by a user that are still pending or approved.
+-- A rejected submission does NOT count, so the student may re-apply.
+DROP PROCEDURE IF EXISTS sp_StudentSubmissions_UserHasActiveSubmission$$
+
+CREATE PROCEDURE sp_StudentSubmissions_UserHasActiveSubmission(IN pUsername VARCHAR(100))
+BEGIN
+    SELECT COUNT(*) FROM StudentSubmissions
+    WHERE Username = pUsername AND IsActive = 1 AND Status IN ('Pending', 'Approved');
+END$$
+
+-- Counts submissions or approved students already using the email.
+DROP PROCEDURE IF EXISTS sp_StudentSubmissions_EmailExists$$
+
+CREATE PROCEDURE sp_StudentSubmissions_EmailExists(IN pEmail VARCHAR(150))
+BEGIN
+    SELECT
+        (SELECT COUNT(*) FROM StudentSubmissions
+         WHERE Email = pEmail AND IsActive = 1 AND Status IN ('Pending', 'Approved')) +
+        (SELECT COUNT(*) FROM Students
+         WHERE Email = pEmail AND IsActive = 1 AND DeletedDate IS NULL);
+END$$
+
+-- Same but excluding a submission id (used when editing).
+DROP PROCEDURE IF EXISTS sp_StudentSubmissions_EmailExistsExclude$$
+
+CREATE PROCEDURE sp_StudentSubmissions_EmailExistsExclude(IN pEmail VARCHAR(150), IN pExcludeId INT)
+BEGIN
+    SELECT
+        (SELECT COUNT(*) FROM StudentSubmissions
+         WHERE Email = pEmail AND IsActive = 1 AND Status IN ('Pending', 'Approved') AND Id <> pExcludeId) +
+        (SELECT COUNT(*) FROM Students
+         WHERE Email = pEmail AND IsActive = 1 AND DeletedDate IS NULL);
+END$$
+
+-- Submits a new application (Status = Pending). Returns the created row.
+DROP PROCEDURE IF EXISTS sp_StudentSubmission_Create$$
+
+CREATE PROCEDURE sp_StudentSubmission_Create(
+    IN pFirstName VARCHAR(100), IN pLastName VARCHAR(100), IN pGender VARCHAR(10),
+    IN pDateOfBirth DATETIME, IN pEmail VARCHAR(150), IN pPhoneNumber VARCHAR(20),
+    IN pAddress VARCHAR(200), IN pBloodGroup VARCHAR(10),
+    IN pFatherName VARCHAR(150), IN pMotherName VARCHAR(150),
+    IN pFatherPhone VARCHAR(20), IN pMotherPhone VARCHAR(20),
+    IN pEmergencyContactName VARCHAR(150), IN pEmergencyContactPhone VARCHAR(20),
+    IN pAadhaarNumber VARCHAR(20), IN pNationality VARCHAR(50),
+    IN pReligion VARCHAR(50), IN pMotherTongue VARCHAR(50),
+    IN pCategory VARCHAR(20), IN pEnrollmentNumber VARCHAR(20),
+    IN pRollNumber VARCHAR(20), IN pBoardId INT, IN pSessionId INT,
+    IN pSchoolId INT, IN pClassId INT, IN pStreamId INT, IN pSpecializationId INT,
+    IN pUsername VARCHAR(100)
+)
+BEGIN
+    INSERT INTO StudentSubmissions (
+        FirstName, LastName, Gender, DateOfBirth, Email, PhoneNumber, Address,
+        BloodGroup, FatherName, MotherName, FatherPhone, MotherPhone,
+        EmergencyContactName, EmergencyContactPhone, AadhaarNumber, Nationality,
+        Religion, MotherTongue, Category, EnrollmentNumber, RollNumber,
+        BoardId, SessionId, SchoolId, ClassId, StreamId, SpecializationId,
+        Username, IsActive, Status, CreatedAt
+    ) VALUES (
+        pFirstName, pLastName, pGender, pDateOfBirth, pEmail, pPhoneNumber, pAddress,
+        pBloodGroup, pFatherName, pMotherName, pFatherPhone, pMotherPhone,
+        pEmergencyContactName, pEmergencyContactPhone, pAadhaarNumber, pNationality,
+        pReligion, pMotherTongue, pCategory, pEnrollmentNumber, pRollNumber,
+        pBoardId, pSessionId, pSchoolId, pClassId, pStreamId, pSpecializationId,
+        pUsername, 1, 'Pending', UTC_TIMESTAMP(6)
+    );
+
+    SELECT sub.Id, sub.FirstName, sub.LastName, sub.Gender, sub.DateOfBirth, sub.Email,
+           sub.PhoneNumber, sub.Address, sub.BloodGroup, sub.FatherName, sub.MotherName,
+           sub.FatherPhone, sub.MotherPhone, sub.EmergencyContactName,
+           sub.EmergencyContactPhone, sub.AadhaarNumber, sub.Nationality, sub.Religion,
+           sub.MotherTongue, sub.Category, sub.EnrollmentNumber, sub.RollNumber,
+           sub.BoardId, b.UniversityName AS BoardName,
+           sub.SessionId, ses.Name AS SessionName,
+           sub.SchoolId, sch.Name AS SchoolName,
+           sub.ClassId, c.`Class` AS ClassName, c.Section AS ClassSection,
+           sub.StreamId, st.Name AS StreamName,
+           sub.SpecializationId, sp.Name AS SpecializationName,
+           sub.Username, sub.StudentId, sub.IsActive, sub.Status, sub.ReviewNote,
+           sub.ReviewedBy, sub.ReviewedDate, sub.UpdatedBy, sub.UpdatedDate,
+           sub.DeletedDate, sub.CreatedAt
+    FROM StudentSubmissions sub
+    LEFT JOIN SchoolBoards b ON b.Id = sub.BoardId
+    LEFT JOIN Sessions ses ON ses.Id = sub.SessionId
+    LEFT JOIN Schools sch ON sch.Id = sub.SchoolId
+    LEFT JOIN Classes c ON c.Id = sub.ClassId
+    LEFT JOIN Streams st ON st.Id = sub.StreamId
+    LEFT JOIN Specializations sp ON sp.Id = sub.SpecializationId
+    WHERE sub.Id = LAST_INSERT_ID();
+END$$
+
+-- Updates a PENDING submission (a reviewed one can only be re-approved/rejected).
+DROP PROCEDURE IF EXISTS sp_StudentSubmission_Update$$
+
+CREATE PROCEDURE sp_StudentSubmission_Update(
+    IN pId INT,
+    IN pFirstName VARCHAR(100), IN pLastName VARCHAR(100), IN pGender VARCHAR(10),
+    IN pDateOfBirth DATETIME, IN pEmail VARCHAR(150), IN pPhoneNumber VARCHAR(20),
+    IN pAddress VARCHAR(200), IN pBloodGroup VARCHAR(10),
+    IN pFatherName VARCHAR(150), IN pMotherName VARCHAR(150),
+    IN pFatherPhone VARCHAR(20), IN pMotherPhone VARCHAR(20),
+    IN pEmergencyContactName VARCHAR(150), IN pEmergencyContactPhone VARCHAR(20),
+    IN pAadhaarNumber VARCHAR(20), IN pNationality VARCHAR(50),
+    IN pReligion VARCHAR(50), IN pMotherTongue VARCHAR(50),
+    IN pCategory VARCHAR(20), IN pEnrollmentNumber VARCHAR(20),
+    IN pRollNumber VARCHAR(20), IN pBoardId INT, IN pSessionId INT,
+    IN pSchoolId INT, IN pClassId INT, IN pStreamId INT, IN pSpecializationId INT,
+    IN pUpdatedBy VARCHAR(100)
+)
+BEGIN
+    UPDATE StudentSubmissions
+    SET FirstName = pFirstName, LastName = pLastName, Gender = pGender,
+        DateOfBirth = pDateOfBirth, Email = pEmail, PhoneNumber = pPhoneNumber,
+        Address = pAddress, BloodGroup = pBloodGroup,
+        FatherName = pFatherName, MotherName = pMotherName,
+        FatherPhone = pFatherPhone, MotherPhone = pMotherPhone,
+        EmergencyContactName = pEmergencyContactName,
+        EmergencyContactPhone = pEmergencyContactPhone,
+        AadhaarNumber = pAadhaarNumber, Nationality = pNationality,
+        Religion = pReligion, MotherTongue = pMotherTongue,
+        Category = pCategory, EnrollmentNumber = pEnrollmentNumber,
+        RollNumber = pRollNumber, BoardId = pBoardId, SessionId = pSessionId,
+        SchoolId = pSchoolId, ClassId = pClassId, StreamId = pStreamId,
+        SpecializationId = pSpecializationId,
+        UpdatedBy = pUpdatedBy, UpdatedDate = UTC_TIMESTAMP(6)
+    WHERE Id = pId AND Status = 'Pending' AND IsActive = 1;
+
+    SELECT sub.Id, sub.FirstName, sub.LastName, sub.Gender, sub.DateOfBirth, sub.Email,
+           sub.PhoneNumber, sub.Address, sub.BloodGroup, sub.FatherName, sub.MotherName,
+           sub.FatherPhone, sub.MotherPhone, sub.EmergencyContactName,
+           sub.EmergencyContactPhone, sub.AadhaarNumber, sub.Nationality, sub.Religion,
+           sub.MotherTongue, sub.Category, sub.EnrollmentNumber, sub.RollNumber,
+           sub.BoardId, b.UniversityName AS BoardName,
+           sub.SessionId, ses.Name AS SessionName,
+           sub.SchoolId, sch.Name AS SchoolName,
+           sub.ClassId, c.`Class` AS ClassName, c.Section AS ClassSection,
+           sub.StreamId, st.Name AS StreamName,
+           sub.SpecializationId, sp.Name AS SpecializationName,
+           sub.Username, sub.StudentId, sub.IsActive, sub.Status, sub.ReviewNote,
+           sub.ReviewedBy, sub.ReviewedDate, sub.UpdatedBy, sub.UpdatedDate,
+           sub.DeletedDate, sub.CreatedAt
+    FROM StudentSubmissions sub
+    LEFT JOIN SchoolBoards b ON b.Id = sub.BoardId
+    LEFT JOIN Sessions ses ON ses.Id = sub.SessionId
+    LEFT JOIN Schools sch ON sch.Id = sub.SchoolId
+    LEFT JOIN Classes c ON c.Id = sub.ClassId
+    LEFT JOIN Streams st ON st.Id = sub.StreamId
+    LEFT JOIN Specializations sp ON sp.Id = sub.SpecializationId
+    WHERE sub.Id = pId;
+END$$
+
+-- One-time approval: only Pending submissions can be approved. Copies the row
+-- into Students (Status Approved) and marks the submission Approved + links it.
+DROP PROCEDURE IF EXISTS sp_StudentSubmission_Approve$$
+
+CREATE PROCEDURE sp_StudentSubmission_Approve(
+    IN pId INT,
+    IN pReviewedBy VARCHAR(100)
+)
+BEGIN
+    DECLARE vStatus VARCHAR(20);
+    DECLARE vUsername VARCHAR(100);
+
+    SELECT Status, Username INTO vStatus, vUsername
+    FROM StudentSubmissions
+    WHERE Id = pId AND IsActive = 1;
+
+    IF vStatus = 'Pending' THEN
+        INSERT INTO Students (
+            FirstName, LastName, Gender, DateOfBirth, Email, PhoneNumber, Address,
+            BloodGroup, FatherName, MotherName, FatherPhone, MotherPhone,
+            EmergencyContactName, EmergencyContactPhone, AadhaarNumber, Nationality,
+            Religion, MotherTongue, Category, EnrollmentNumber, RollNumber,
+            BoardId, SessionId, SchoolId, ClassId, StreamId, SpecializationId,
+            IsActive, Status, InsertedBy, CreatedAt
+        )
+        SELECT FirstName, LastName, Gender, DateOfBirth, Email, PhoneNumber, Address,
+               BloodGroup, FatherName, MotherName, FatherPhone, MotherPhone,
+               EmergencyContactName, EmergencyContactPhone, AadhaarNumber, Nationality,
+               Religion, MotherTongue, Category, EnrollmentNumber, RollNumber,
+               BoardId, SessionId, SchoolId, ClassId, StreamId, SpecializationId,
+               1, 'Approved', Username, UTC_TIMESTAMP(6)
+        FROM StudentSubmissions
+        WHERE Id = pId;
+
+        UPDATE StudentSubmissions
+        SET Status = 'Approved',
+            StudentId = LAST_INSERT_ID(),
+            ReviewNote = NULL,
+            ReviewedBy = pReviewedBy,
+            ReviewedDate = UTC_TIMESTAMP(6)
+        WHERE Id = pId;
+    END IF;
+
+    SELECT sub.Id, sub.FirstName, sub.LastName, sub.Gender, sub.DateOfBirth, sub.Email,
+           sub.PhoneNumber, sub.Address, sub.BloodGroup, sub.FatherName, sub.MotherName,
+           sub.FatherPhone, sub.MotherPhone, sub.EmergencyContactName,
+           sub.EmergencyContactPhone, sub.AadhaarNumber, sub.Nationality, sub.Religion,
+           sub.MotherTongue, sub.Category, sub.EnrollmentNumber, sub.RollNumber,
+           sub.BoardId, b.UniversityName AS BoardName,
+           sub.SessionId, ses.Name AS SessionName,
+           sub.SchoolId, sch.Name AS SchoolName,
+           sub.ClassId, c.`Class` AS ClassName, c.Section AS ClassSection,
+           sub.StreamId, st.Name AS StreamName,
+           sub.SpecializationId, sp.Name AS SpecializationName,
+           sub.Username, sub.StudentId, sub.IsActive, sub.Status, sub.ReviewNote,
+           sub.ReviewedBy, sub.ReviewedDate, sub.UpdatedBy, sub.UpdatedDate,
+           sub.DeletedDate, sub.CreatedAt
+    FROM StudentSubmissions sub
+    LEFT JOIN SchoolBoards b ON b.Id = sub.BoardId
+    LEFT JOIN Sessions ses ON ses.Id = sub.SessionId
+    LEFT JOIN Schools sch ON sch.Id = sub.SchoolId
+    LEFT JOIN Classes c ON c.Id = sub.ClassId
+    LEFT JOIN Streams st ON st.Id = sub.StreamId
+    LEFT JOIN Specializations sp ON sp.Id = sub.SpecializationId
+    WHERE sub.Id = pId;
+END$$
+
+-- Rejects a submission (optional note). Only Pending can be rejected. The
+-- submission stays Rejected in the queue; no Students row is ever created.
+DROP PROCEDURE IF EXISTS sp_StudentSubmission_Reject$$
+
+CREATE PROCEDURE sp_StudentSubmission_Reject(
+    IN pId INT,
+    IN pReviewedBy VARCHAR(100),
+    IN pReviewNote VARCHAR(500)
+)
+BEGIN
+    UPDATE StudentSubmissions
+    SET Status = 'Rejected',
+        ReviewNote = pReviewNote,
+        ReviewedBy = pReviewedBy,
+        ReviewedDate = UTC_TIMESTAMP(6)
+    WHERE Id = pId AND Status = 'Pending' AND IsActive = 1;
+
+    SELECT sub.Id, sub.FirstName, sub.LastName, sub.Gender, sub.DateOfBirth, sub.Email,
+           sub.PhoneNumber, sub.Address, sub.BloodGroup, sub.FatherName, sub.MotherName,
+           sub.FatherPhone, sub.MotherPhone, sub.EmergencyContactName,
+           sub.EmergencyContactPhone, sub.AadhaarNumber, sub.Nationality, sub.Religion,
+           sub.MotherTongue, sub.Category, sub.EnrollmentNumber, sub.RollNumber,
+           sub.BoardId, b.UniversityName AS BoardName,
+           sub.SessionId, ses.Name AS SessionName,
+           sub.SchoolId, sch.Name AS SchoolName,
+           sub.ClassId, c.`Class` AS ClassName, c.Section AS ClassSection,
+           sub.StreamId, st.Name AS StreamName,
+           sub.SpecializationId, sp.Name AS SpecializationName,
+           sub.Username, sub.StudentId, sub.IsActive, sub.Status, sub.ReviewNote,
+           sub.ReviewedBy, sub.ReviewedDate, sub.UpdatedBy, sub.UpdatedDate,
+           sub.DeletedDate, sub.CreatedAt
+    FROM StudentSubmissions sub
+    LEFT JOIN SchoolBoards b ON b.Id = sub.BoardId
+    LEFT JOIN Sessions ses ON ses.Id = sub.SessionId
+    LEFT JOIN Schools sch ON sch.Id = sub.SchoolId
+    LEFT JOIN Classes c ON c.Id = sub.ClassId
+    LEFT JOIN Streams st ON st.Id = sub.StreamId
+    LEFT JOIN Specializations sp ON sp.Id = sub.SpecializationId
+    WHERE sub.Id = pId;
+END$$
+
+-- Soft-deletes a submission (owner may withdraw a Pending one; admin any).
+DROP PROCEDURE IF EXISTS sp_StudentSubmission_Delete$$
+
+CREATE PROCEDURE sp_StudentSubmission_Delete(
+    IN pId INT,
+    IN pDeletedBy VARCHAR(100)
+)
+BEGIN
+    DECLARE vStudentId INT;
+
+    SELECT StudentId INTO vStudentId
+    FROM StudentSubmissions
+    WHERE Id = pId;
+
+    UPDATE StudentSubmissions
+    SET IsActive = 0,
+        DeletedBy = pDeletedBy,
+        DeletedDate = UTC_TIMESTAMP(6)
+    WHERE Id = pId;
+
+    IF vStudentId IS NOT NULL THEN
+        UPDATE Students
+        SET IsActive = 0,
+            DeletedBy = pDeletedBy,
+            DeletedDate = UTC_TIMESTAMP(6)
+        WHERE Id = vStudentId;
+    END IF;
 END$$
 
 -- ============================================================================

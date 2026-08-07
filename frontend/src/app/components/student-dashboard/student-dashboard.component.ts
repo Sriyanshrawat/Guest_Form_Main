@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { StudentService } from '../../services/student.service';
-import { Student } from '../../models/student.model';
+import { Student, StudentSubmission } from '../../models/student.model';
 
 type Notification = { text: string; type: 'success' | 'info' | 'warning' };
 
@@ -21,16 +21,18 @@ export class StudentDashboardComponent implements OnInit {
   user$ = this.authService.currentUser$;
   loading = true;
   loadError = false;
-  student: Student | null = null;
+  student: StudentSubmission | null = null;
   registrationStatus = 'Not Registered';
   applicationNo = '—';
   profilePct = 0;
   notifications: Notification[] = [];
 
+  // load own student data on init
   ngOnInit(): void {
     this.loadMyStudent();
   }
 
+  // greeting based on the current hour
   get greeting(): string {
     const hour = new Date().getHours();
     if (hour < 12) return 'Good Morning';
@@ -39,6 +41,7 @@ export class StudentDashboardComponent implements OnInit {
     return 'Good Night';
   }
 
+  // css tone class for the current approval status
   get statusTone(): string {
     switch (this.student?.status) {
       case 'Approved':
@@ -52,10 +55,11 @@ export class StudentDashboardComponent implements OnInit {
     }
   }
 
+  // load the current user's submission from the API
   loadMyStudent(): void {
     this.loading = true;
     this.loadError = false;
-    this.studentService.getMyStudents().subscribe({
+    this.studentService.getMySubmissions().subscribe({
       next: (students) => {
         this.student = students && students.length > 0 ? students[0] : null;
         this.buildStatus();
@@ -68,6 +72,7 @@ export class StudentDashboardComponent implements OnInit {
     });
   }
 
+  // derive status, app no, profile % and notifications from the student
   private buildStatus(): void {
     const s = this.student;
     if (!s) {
@@ -119,6 +124,7 @@ export class StudentDashboardComponent implements OnInit {
     this.notifications = notifications;
   }
 
+  // map a status code to a display label
   private statusLabel(status?: Student['status']): string {
     switch (status) {
       case 'Approved':
@@ -130,6 +136,7 @@ export class StudentDashboardComponent implements OnInit {
     }
   }
 
+  // build an application number from enrollment or generated id
   private makeAppNo(s: Student): string {
     if (s.enrollmentNumber) return s.enrollmentNumber;
     if (s.id == null) return '—';
@@ -137,6 +144,7 @@ export class StudentDashboardComponent implements OnInit {
     return `${year}${String(s.id).padStart(5, '0')}`;
   }
 
+  // percentage of required profile fields filled in
   private calcProfilePct(s: Student): number {
     const required = [
       s.firstName, s.lastName, s.gender, s.dateOfBirth, s.email,

@@ -27,6 +27,10 @@
   --brass-soft: #26354a; --success-bg: #173322; --error-bg: #3a1c22;
 }
 
+:host-context(.dark-mode) tbody tr:hover td {
+  background: #26354a;
+}
+
 * { box-sizing: border-box; }
 
 /* ---------- Page ---------- */

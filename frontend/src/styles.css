@@ -10,7 +10,7 @@
   --ink-800: #1a2029;
   --ink-700: #262e3a;
   --ink-600: #384254;
-  --paper: #ece7da;
+  --paper: #10151c;
   --paper-dim: #d9d3c2;
   --brass: #c6963c;
   --brass-light: #e2b563;
@@ -219,44 +219,44 @@ body.dark-mode *::-webkit-scrollbar-thumb {
 .filter-grid-actions { height:100%; display:flex; align-items:center; gap:.5rem; }
 .filter-grid-action {
   display:inline-flex; align-items:center; justify-content:center; gap:.4rem;
-  padding:.5rem .85rem; border:1px solid var(--rule-strong,#cbd5e1); border-radius:8px;
-  color:var(--ink-soft,#4b5563); background:var(--surface,#fff); cursor:pointer;
+  padding:.5rem .85rem; border:1px solid #4356d9; border-radius:8px;
+  color:#4356d9; background:#fff; cursor:pointer;
   font:700 .82rem 'Inter',sans-serif; transition:all .12s ease;
 }
-.filter-grid-action:hover { border-color:var(--ink-faint,#64748b); color:var(--ink,#111827); background:var(--paper,#f8fafc); }
-.filter-grid-action.danger { color:var(--error,#b91c1c); border-color:#f3cfc9; }
-.filter-grid-action.danger:hover { background:var(--error-bg,#fff1f0); border-color:var(--error,#b91c1c); }
+.filter-grid-action:hover { border-color:#3a4bc4; color:#fff; background:linear-gradient(180deg,#5b7cfa 0%,#4356d9 100%); }
+.filter-grid-action.danger { color:#c93c36; border-color:#c93c36; }
+.filter-grid-action.danger:hover { color:#fff; background:linear-gradient(180deg,#e8504a 0%,#c93c36 100%); border-color:#b0352f; }
 
 /* Student grid renderers are created by AG Grid, so their styles must be global. */
 .grid-actions { height:100%; display:flex; align-items:center; justify-content:center; gap:.35rem; white-space:nowrap; transform:translateX(-6px); }
 .grid-action {
   display:inline-flex; align-items:center; justify-content:center; gap:.4rem;
-  padding:.45rem .5rem; border:1px solid #ddcfad; border-radius:8px;
-  color:#445b7d; background:#fff; cursor:pointer;
+  padding:.45rem .5rem; border:1px solid #4356d9; border-radius:8px;
+  color:#4356d9; background:#fff; cursor:pointer;
   font:700 .82rem 'Inter',sans-serif; line-height:1.1; transition:all .12s ease;
 }
-.grid-action:hover { border-color:#bba16d; color:#314b70; background:#fffdf9; }
-.grid-action.delete { color:#c8382d; border-color:#f5c8c3; }
-.grid-action.delete:hover { background:#fff7f6; border-color:#e88f87; }
+.grid-action:hover { border-color:#3a4bc4; color:#fff; background:linear-gradient(180deg,#5b7cfa 0%,#4356d9 100%); }
+.grid-action.delete { color:#c93c36; border-color:#c93c36; }
+.grid-action.delete:hover { color:#fff; background:linear-gradient(180deg,#e8504a 0%,#c93c36 100%); border-color:#b0352f; }
 
 /* Consistent action buttons for every data table. */
 td.actions button, td.table-actions button, .actions__content button, .filter-grid-action, .grid-action, .view-btn, .edit-btn, .delete-btn, .table-button {
   display:inline-flex !important; align-items:center !important; justify-content:center !important; gap:.4rem !important;
-  padding:.55rem .9rem !important; border:1px solid #cfd7e5 !important; border-radius:9px !important;
-  background:#f3f5fa !important; color:#31456e !important; font:700 .86rem 'Inter',sans-serif !important;
+  padding:.55rem .9rem !important; border:1px solid #4356d9 !important; border-radius:9px !important;
+  background:#fff !important; color:#4356d9 !important; font:700 .86rem 'Inter',sans-serif !important;
   line-height:1.1 !important; cursor:pointer;
 }
 td.actions button:hover, td.table-actions button:hover, .actions__content button:hover, .filter-grid-action:hover, .grid-action:hover, .edit-btn:hover, .table-button:hover {
-  background:#e9edf6 !important; border-color:#aebbd0 !important; color:#263a61 !important;
+  color:#fff !important; background:linear-gradient(180deg,#5b7cfa 0%,#4356d9 100%) !important; border-color:#3a4bc4 !important;
 }
 .view-btn, .grid-action[data-action="view"] {
-  background:#f6eedc !important; border-color:#dfcfaa !important; color:#896626 !important;
+  background:linear-gradient(180deg,#d8a64a 0%,#b07f2b 100%) !important; border-color:#b07f2b !important; color:#fff !important;
 }
-.view-btn:hover, .grid-action[data-action="view"]:hover { background:#f1e5ca !important; border-color:#cdb782 !important; color:#74531b !important; }
+.view-btn:hover, .grid-action[data-action="view"]:hover { background:linear-gradient(180deg,#e5b45a 0%,#a57525 100%) !important; border-color:#a57525 !important; color:#fff !important; }
 td.actions button.delete, td.table-actions button.delete, .actions__content button.delete, .filter-grid-action.danger, .grid-action.delete, .delete-btn, .table-button--delete {
-  background:#fff0ef !important; border-color:#edb6b0 !important; color:#b63d34 !important;
+  background:linear-gradient(180deg,#e8504a 0%,#c93c36 100%) !important; border-color:#c93c36 !important; color:#fff !important;
 }
-td.actions button.delete:hover, td.table-actions button.delete:hover, .actions__content button.delete:hover, .filter-grid-action.danger:hover, .grid-action.delete:hover, .delete-btn:hover, .table-button--delete:hover { background:#fde2df !important; border-color:#dd8a82 !important; color:#9e2c25 !important; }
+td.actions button.delete:hover, td.table-actions button.delete:hover, .actions__content button.delete:hover, .filter-grid-action.danger:hover, .grid-action.delete:hover, .delete-btn:hover, .table-button--delete:hover { background:linear-gradient(180deg,#f05f59 0%,#b0352f 100%) !important; border-color:#b0352f !important; color:#fff !important; }
 
 /* The Student Form has three actions in one AG Grid cell; keep them compact. */
 .grid-actions .grid-action {
@@ -264,7 +264,72 @@ td.actions button.delete:hover, td.table-actions button.delete:hover, .actions__
   gap:.28rem !important;
   font-size:.78rem !important;
 }
-body.dark-mode .ag-theme-quartz { --ag-background-color:#1f2937; --ag-foreground-color:#e5e7eb; --ag-header-background-color:#182235; --ag-header-foreground-color:#cbd5e1; --ag-border-color:#475569; --ag-row-border-color:#334155; --ag-input-border-color:#475569; --ag-row-hover-color:#263449; }
+body.dark-mode .ag-theme-quartz { --ag-background-color:#1f2937; --ag-foreground-color:#e5e7eb; --ag-header-background-color:#182235; --ag-header-foreground-color:#cbd5e1; --ag-border-color:#475569; --ag-row-border-color:#334155; --ag-input-border-color:#475569; --ag-row-hover-color:#263449; --ag-odd-row-background-color:#1f2937; --ag-selected-row-background-color:#2b3a52; --ag-header-column-separator-color:#475569; }
+
+body.dark-mode .filter-grid-action { background:#fff; border-color:#5b7cfa; color:#5b7cfa; }
+body.dark-mode .filter-grid-action:hover { border-color:#3a4bc4; color:#fff; background:linear-gradient(180deg,#5b7cfa 0%,#4356d9 100%); }
+body.dark-mode .filter-grid-action.danger { color:#e8504a; border-color:#e8504a; background:#fff; }
+body.dark-mode .filter-grid-action.danger:hover { background:linear-gradient(180deg,#e8504a 0%,#c93c36 100%); border-color:#b0352f; color:#fff; }
+
+body.dark-mode td.actions button,
+body.dark-mode td.table-actions button,
+body.dark-mode .actions__content button,
+body.dark-mode .filter-grid-action,
+body.dark-mode .grid-action,
+body.dark-mode .view-btn,
+body.dark-mode .edit-btn,
+body.dark-mode .delete-btn,
+body.dark-mode .table-button {
+  background:#fff !important;
+  border-color:#5b7cfa !important;
+  color:#5b7cfa !important;
+}
+body.dark-mode td.actions button:hover,
+body.dark-mode td.table-actions button:hover,
+body.dark-mode .actions__content button:hover,
+body.dark-mode .filter-grid-action:hover,
+body.dark-mode .grid-action:hover,
+body.dark-mode .edit-btn:hover,
+body.dark-mode .table-button:hover {
+  background:linear-gradient(180deg,#5b7cfa 0%,#4356d9 100%) !important;
+  border-color:#3a4bc4 !important;
+  color:#fff !important;
+}
+body.dark-mode td.actions button.delete,
+body.dark-mode td.table-actions button.delete,
+body.dark-mode .actions__content button.delete,
+body.dark-mode .filter-grid-action.danger,
+body.dark-mode .grid-action.delete,
+body.dark-mode .delete-btn,
+body.dark-mode .table-button--delete {
+  background:linear-gradient(180deg,#e8504a 0%,#c93c36 100%) !important;
+  border-color:#c93c36 !important;
+  color:#fff !important;
+}
+body.dark-mode td.actions button.delete:hover,
+body.dark-mode td.table-actions button.delete:hover,
+body.dark-mode .actions__content button.delete:hover,
+body.dark-mode .filter-grid-action.danger:hover,
+body.dark-mode .grid-action.delete:hover,
+body.dark-mode .delete-btn:hover,
+body.dark-mode .table-button--delete:hover {
+  background:linear-gradient(180deg,#f05f59 0%,#b0352f 100%) !important;
+  border-color:#b0352f !important;
+  color:#fff !important;
+}
+body.dark-mode .view-btn,
+body.dark-mode .grid-action[data-action="view"] { background:linear-gradient(180deg,#d8a64a 0%,#b07f2b 100%) !important; border-color:#b07f2b !important; color:#fff !important; }
+body.dark-mode .view-btn:hover,
+body.dark-mode .grid-action[data-action="view"]:hover { background:linear-gradient(180deg,#e5b45a 0%,#a57525 100%) !important; border-color:#a57525 !important; color:#fff !important; }
+
+body.dark-mode .grid-actions .grid-action[data-action="view"] { background:linear-gradient(180deg,#d8a64a 0%,#b07f2b 100%) !important; border-color:#b07f2b !important; color:#fff !important; }
+body.dark-mode .grid-actions .grid-action[data-action="view"]:hover { background:linear-gradient(180deg,#e5b45a 0%,#a57525 100%) !important; color:#fff !important; border-color:#a57525 !important; }
+body.dark-mode .grid-actions .grid-action[data-action="edit"] { background:#fff !important; border-color:#5b7cfa !important; color:#5b7cfa !important; }
+body.dark-mode .grid-actions .grid-action[data-action="edit"]:hover { background:linear-gradient(180deg,#5b7cfa 0%,#4356d9 100%) !important; color:#fff !important; border-color:#3a4bc4 !important; }
+body.dark-mode .grid-actions .grid-action[data-action="delete"],
+body.dark-mode .grid-actions .grid-action.delete { background:linear-gradient(180deg,#e8504a 0%,#c93c36 100%) !important; border-color:#c93c36 !important; color:#fff !important; }
+body.dark-mode .grid-actions .grid-action[data-action="delete"]:hover,
+body.dark-mode .grid-actions .grid-action.delete:hover { background:linear-gradient(180deg,#f05f59 0%,#b0352f 100%) !important; color:#fff !important; border-color:#b0352f !important; }
 
 /* Rich student-grid cell renderers (AG Grid creates these DOM nodes outside
    Angular component styles, so they must live here in global CSS). */
@@ -302,12 +367,12 @@ body.dark-mode .grid-mono { color:#94a3b8; }
   line-height:1.15 !important;
 }
 .grid-actions .grid-action i { font-size:.8rem; }
-.grid-actions .grid-action[data-action="view"] { background:#f6eedc !important; border-color:#dfcfaa !important; color:#8a6520 !important; }
-.grid-actions .grid-action[data-action="view"]:hover { background:#96702f !important; color:#fff !important; border-color:#96702f !important; }
-.grid-actions .grid-action[data-action="edit"] { background:#eef0f7 !important; border-color:#cfd7e5 !important; color:#2e3a5f !important; }
-.grid-actions .grid-action[data-action="edit"]:hover { background:#2e3a5f !important; color:#fff !important; border-color:#2e3a5f !important; }
-.grid-actions .grid-action[data-action="delete"], .grid-actions .grid-action.delete { background:#fbeeec !important; border-color:#f3cfc9 !important; color:#9c3b34 !important; }
-.grid-actions .grid-action[data-action="delete"]:hover, .grid-actions .grid-action.delete:hover { background:#9c3b34 !important; color:#fff !important; border-color:#9c3b34 !important; }
+.grid-actions .grid-action[data-action="view"] { background:linear-gradient(180deg,#d8a64a 0%,#b07f2b 100%) !important; border-color:#b07f2b !important; color:#fff !important; }
+.grid-actions .grid-action[data-action="view"]:hover { background:linear-gradient(180deg,#e5b45a 0%,#a57525 100%) !important; color:#fff !important; border-color:#a57525 !important; }
+.grid-actions .grid-action[data-action="edit"] { background:#fff !important; border-color:#4356d9 !important; color:#4356d9 !important; }
+.grid-actions .grid-action[data-action="edit"]:hover { background:linear-gradient(180deg,#5b7cfa 0%,#4356d9 100%) !important; color:#fff !important; border-color:#3a4bc4 !important; }
+.grid-actions .grid-action[data-action="delete"], .grid-actions .grid-action.delete { background:linear-gradient(180deg,#e8504a 0%,#c93c36 100%) !important; border-color:#c93c36 !important; color:#fff !important; }
+.grid-actions .grid-action[data-action="delete"]:hover, .grid-actions .grid-action.delete:hover { background:linear-gradient(180deg,#f05f59 0%,#b0352f 100%) !important; color:#fff !important; border-color:#b0352f !important; }
 
 /* Center the student form table's cell content. */
 .student-grid .ag-cell { text-align: center; }

@@ -39,6 +39,12 @@ export const routes: Routes = [
     loadComponent: () => import('./components/student-report/student-report.component').then(m => m.StudentReportComponent),
     canActivate: [adminGuard]
   },
+  // application review (accept/reject card view)
+  {
+    path: 'applications',
+    loadComponent: () => import('./components/application-review/application-review.component').then(m => m.ApplicationReviewComponent),
+    canActivate: [adminGuard]
+  },
   // education board
   {
     path: 'education-board',

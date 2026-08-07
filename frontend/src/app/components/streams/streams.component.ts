@@ -246,5 +246,6 @@ export class StreamsComponent implements OnInit {
     return item.insertedDate ? new Date(item.insertedDate).getTime() : 0;
   }
 
+  // route grid action to edit or delete
   handleGridAction(event: { id: string; row: StreamRecord }): void { event.id === 'edit' ? this.editStream(event.row) : this.deleteStream(event.row); }
 }

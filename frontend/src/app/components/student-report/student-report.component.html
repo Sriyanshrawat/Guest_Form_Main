@@ -142,12 +142,6 @@
             </td>
             <td>
               <div class="action-btns">
-                <button class="action-btn approve" *ngIf="s.status !== 'Approved'" (click)="approveStudent(s)" title="Accept this registration">
-                  <i class="bi bi-check2-circle"></i><span>Accept</span>
-                </button>
-                <button class="action-btn reject" *ngIf="s.status !== 'Rejected'" (click)="openRejectModal(s)" title="Reject this registration">
-                  <i class="bi bi-x-circle"></i><span>Reject</span>
-                </button>
                 <button class="action-btn view" (click)="viewDetails(s)" title="View details">
                   <i class="bi bi-eye-fill"></i><span>View</span>
                 </button>
@@ -295,10 +289,6 @@
             <span class="detail-label">Enrollment Number</span>
             <span class="detail-value">{{ viewingStudent.enrollmentNumber || 'N/A' }}</span>
           </div>
-          <div class="detail-item">
-            <span class="detail-label">Roll Number</span>
-            <span class="detail-value">{{ viewingStudent.rollNumber || 'N/A' }}</span>
-          </div>
         </div>
       </div>
 
@@ -330,44 +320,6 @@
             <span class="detail-value">{{ viewingStudent.specializationName || '—' }}</span>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal-overlay" *ngIf="rejectingStudent" (click)="closeRejectModal()">
-  <div class="modal-content modal-content--sm" (click)="$event.stopPropagation()">
-    <button class="modal-close" (click)="closeRejectModal()"><i class="bi bi-x-lg"></i></button>
-
-    <div class="modal-hero modal-hero--reject">
-      <div class="modal-avatar">{{ initials(rejectingStudent) }}</div>
-      <div class="modal-hero-text">
-        <h2>Reject {{ rejectingStudent.firstName }} {{ rejectingStudent.lastName }}?</h2>
-        <p>The student will be notified that their form was rejected.</p>
-      </div>
-    </div>
-
-    <div class="modal-body">
-      <div class="error-box" *ngIf="errorMessage">
-        <i class="bi bi-exclamation-triangle-fill"></i>
-        {{ errorMessage }}
-      </div>
-      <label class="reject-note-label">
-        <span>Note to the student <small>(optional)</small></span>
-        <textarea
-          [(ngModel)]="rejectNote"
-          rows="4"
-          maxlength="500"
-          placeholder="e.g. Incomplete documents — please upload your Aadhaar card and re-submit."
-        ></textarea>
-        <small class="reject-note-counter">{{ rejectNote.length }}/500</small>
-      </label>
-      <div class="reject-actions">
-        <button class="reject-cancel" type="button" (click)="closeRejectModal()">Cancel</button>
-        <button class="reject-confirm" type="button" [disabled]="submittingReview" (click)="confirmReject()">
-          <i class="bi bi-x-circle"></i>
-          {{ submittingReview ? 'Rejecting...' : 'Reject Registration' }}
-        </button>
       </div>
     </div>
   </div>

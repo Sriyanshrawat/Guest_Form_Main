@@ -104,6 +104,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   showAllActivities = false;
   streamProgress: StreamProgress[] = [];
 
+  // inject services for each dashboard data source
   constructor(
     private boards: SchoolBoardService,
     private schools: SchoolService,

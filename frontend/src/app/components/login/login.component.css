@@ -156,15 +156,15 @@ form {
   width: 100%;
   margin-top: .25rem;
   height: 3.4rem;
-  border: 1px solid var(--brass-dark);
+  border: 1px solid #b07f2b;
   border-radius: 10px;
-  background: linear-gradient(180deg, var(--brass) 0%, var(--brass-dark) 100%);
+  background: linear-gradient(180deg, #d8a64a 0%, #b07f2b 100%);
   color: #ffffff;
   font-size: .95rem;
   font-weight: 700;
   font-family: inherit;
   cursor: pointer;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 2px 6px rgba(176, 127, 43, .3);
   transition: transform .15s ease, box-shadow .15s ease;
   position: relative;
   overflow: hidden;
@@ -172,7 +172,7 @@ form {
 
 .stamp-btn:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 12px 26px rgba(122, 90, 36, .32);
+  box-shadow: 0 12px 26px rgba(176, 127, 43, .4);
 }
 
 .stamp-btn:disabled {

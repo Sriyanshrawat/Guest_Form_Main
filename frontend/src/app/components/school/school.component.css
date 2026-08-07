@@ -27,6 +27,10 @@
   --brass-soft: #26354a; --success-bg: #173322; --error-bg: #3a1c22;
 }
 
+:host-context(.dark-mode) tbody tr:hover {
+  background: #26354a;
+}
+
 * { box-sizing: border-box; }
 
 .school-page {
@@ -194,11 +198,12 @@
 .button:active { transform: translateY(1px); }
 .button--secondary { background: var(--surface); }
 .button--primary {
-  border-color: var(--brass-dark);
-  background: linear-gradient(180deg, var(--brass) 0%, var(--brass-dark) 100%);
+  border-color: #b07f2b;
+  background: linear-gradient(180deg, #d8a64a 0%, #b07f2b 100%);
   color: #fff;
+  box-shadow: 0 2px 6px rgba(176, 127, 43, .3);
 }
-.button--primary:hover { box-shadow: 0 8px 20px rgba(122, 90, 36, .32); border-color: var(--brass-dark); color: #fff; }
+.button--primary:hover { box-shadow: 0 10px 24px rgba(176, 127, 43, .4); border-color: #a57525; color: #fff; background: linear-gradient(180deg, #e5b45a 0%, #a57525 100%); }
 .button:disabled { opacity: .55; cursor: not-allowed; transform: none; box-shadow: none; }
 
 /* ---------- Notices ---------- */

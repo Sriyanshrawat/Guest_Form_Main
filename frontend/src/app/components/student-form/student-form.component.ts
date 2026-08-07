@@ -14,7 +14,7 @@ import {
 } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 
-import { Student, LookupOption } from '../../models/student.model';
+import { StudentSubmission, LookupOption } from '../../models/student.model';
 import { StudentService } from '../../services/student.service';
 import { AuthService } from '../../services/auth.service';
 
@@ -43,7 +43,7 @@ export class StudentFormComponent implements OnInit {
   successMessage = '';
   errorMessage = '';
   editingId: number | null = null;
-  viewingStudent: Student | null = null;
+  viewingStudent: StudentSubmission | null = null;
   termsModalOpen = false;
 
   boards: LookupOption[] = [];
@@ -53,13 +53,13 @@ export class StudentFormComponent implements OnInit {
   streams: LookupOption[] = [];
   specializations: LookupOption[] = [];
 
-  students: Student[] = [];
-  filteredStudents: Student[] = [];
+  students: StudentSubmission[] = [];
+  filteredStudents: StudentSubmission[] = [];
   searchText = '';
   displayedStudentCount = 0;
-  private gridApi?: GridApi<Student>;
+  private gridApi?: GridApi<StudentSubmission>;
 
-  readonly defaultColDef: ColDef<Student> = {
+  readonly defaultColDef: ColDef<StudentSubmission> = {
     filter: 'agTextColumnFilter',
     floatingFilter: true,
     sortable: true,
@@ -68,12 +68,12 @@ export class StudentFormComponent implements OnInit {
     minWidth: 80
   };
 
-  readonly studentColumnDefs: ColDef<Student>[] = [
+  readonly studentColumnDefs: ColDef<StudentSubmission>[] = [
     {
       headerName: 'Student',
       minWidth: 190,
-      cellRenderer: (params: { data?: Student }) => this.studentCellRenderer(params.data),
-      filterValueGetter: (params: { data?: Student }) => `${params.data?.firstName ?? ''} ${params.data?.lastName ?? ''} ${params.data?.email ?? ''}`
+      cellRenderer: (params: { data?: StudentSubmission }) => this.studentCellRenderer(params.data),
+      filterValueGetter: (params: { data?: StudentSubmission }) => `${params.data?.firstName ?? ''} ${params.data?.lastName ?? ''} ${params.data?.email ?? ''}`
     },
     {
       field: 'gender',
@@ -97,8 +97,8 @@ export class StudentFormComponent implements OnInit {
       field: 'fatherName',
       headerName: 'Parents',
       minWidth: 150,
-      cellRenderer: (params: { data?: Student }) => this.parentCellRenderer(params.data),
-      filterValueGetter: (params: { data?: Student }) => `${params.data?.fatherName ?? ''} ${params.data?.motherName ?? ''} ${params.data?.fatherPhone ?? ''} ${params.data?.motherPhone ?? ''}`
+      cellRenderer: (params: { data?: StudentSubmission }) => this.parentCellRenderer(params.data),
+      filterValueGetter: (params: { data?: StudentSubmission }) => `${params.data?.fatherName ?? ''} ${params.data?.motherName ?? ''} ${params.data?.fatherPhone ?? ''} ${params.data?.motherPhone ?? ''}`
     },
     {
       headerName: 'Class',
@@ -337,8 +337,8 @@ export class StudentFormComponent implements OnInit {
   loadStudents(): void {
     this.loading = true;
     const obs = this.authService.isAdmin()
-      ? this.studentService.getStudents()
-      : this.studentService.getMyStudents();
+      ? this.studentService.getSubmissions()
+      : this.studentService.getMySubmissions();
     obs.subscribe({
       next: (data) => {
         this.students = data;
@@ -375,16 +375,19 @@ export class StudentFormComponent implements OnInit {
     );
   }
 
-  onGridReady(event: GridReadyEvent<Student>): void {
+  // capture the grid api when the grid is ready
+  onGridReady(event: GridReadyEvent<StudentSubmission>): void {
     this.gridApi = event.api;
     this.updateDisplayedStudentCount();
   }
 
+  // refresh displayed count when grid filters change
   onGridFilterChanged(): void {
     this.updateDisplayedStudentCount();
   }
 
-  onGridCellClicked(event: CellClickedEvent<Student>): void {
+  // route action button clicks in the grid
+  onGridCellClicked(event: CellClickedEvent<StudentSubmission>): void {
     if (event.column.getColId() !== 'actions' || !event.data) return;
     const action = ((event.event?.target as HTMLElement | null)?.closest<HTMLButtonElement>('[data-action]'))?.dataset['action'];
     if (action === 'view') this.viewDetails(event.data);
@@ -392,17 +395,18 @@ export class StudentFormComponent implements OnInit {
     if (action === 'delete') this.deleteStudent(event.data);
   }
 
+  // sync the displayed row count from the grid
   private updateDisplayedStudentCount(): void {
     this.displayedStudentCount = this.gridApi?.getDisplayedRowCount() ?? this.students.length;
   }
 
   // avatar initials
-  initials(s: Student): string {
+  initials(s: StudentSubmission): string {
     return ((s.firstName[0] ?? '') + (s.lastName[0] ?? '')).toUpperCase();
   }
 
   // deterministic avatar colour from name
-  avatarColor(s: Student): string {
+  avatarColor(s: StudentSubmission): string {
     const key = s.firstName + s.lastName;
     let hash = 0;
     for (let i = 0; i < key.length; i++) {
@@ -421,13 +425,15 @@ export class StudentFormComponent implements OnInit {
       .replace(/'/g, '&#39;');
   }
 
-  private studentCellRenderer(s?: Student): string {
+  // render the student cell with avatar and name
+  private studentCellRenderer(s?: StudentSubmission): string {
     const name = `${s?.firstName ?? ''} ${s?.lastName ?? ''}`.trim();
     const color = s ? this.avatarColor(s) : '#96702f';
     const initials = s ? this.escapeHtml(this.initials(s)) : '';
     return `<div class="grid-student-cell"><div class="grid-avatar" style="background:${color}">${initials}</div><div class="grid-student-info"><strong>${this.escapeHtml(name)}</strong><small>${this.escapeHtml(s?.email ?? '')}</small></div></div>`;
   }
 
+  // render the gender cell as a coloured badge
   private genderCellRenderer(value: string): string {
     const v = value ?? '';
     if (!v) return '';
@@ -436,22 +442,25 @@ export class StudentFormComponent implements OnInit {
     return `<span class="grid-badge ${badge}"><i class="bi ${icon}"></i>${this.escapeHtml(v)}</span>`;
   }
 
+  // render the phone cell in monospace
   private phoneCellRenderer(value: string): string {
     return value ? `<span class="grid-mono">${this.escapeHtml(value)}</span>` : '—';
   }
 
-  private parentCellRenderer(s?: Student): string {
+  // render the parents cell with guardian lines
+  private parentCellRenderer(s?: StudentSubmission): string {
     const father = s?.fatherName ? `<div class="grid-guardian-line"><i class="bi bi-gender-male"></i><span>${this.escapeHtml(s.fatherName)}</span></div>` : '';
     const mother = s?.motherName ? `<div class="grid-guardian-line"><i class="bi bi-gender-female"></i><span>${this.escapeHtml(s.motherName)}</span></div>` : '';
     return `<div class="grid-guardian-info">${father}${mother}</div>`;
   }
 
+  // render the class cell as a badge
   private classCellRenderer(value: string): string {
     return value ? `<span class="grid-badge grid-badge-class">${this.escapeHtml(value)}</span>` : '';
   }
 
   // open details modal
-  viewDetails(s: Student): void {
+  viewDetails(s: StudentSubmission): void {
     this.viewingStudent = s;
   }
 
@@ -461,7 +470,7 @@ export class StudentFormComponent implements OnInit {
   }
 
   // enter edit mode for a student
-  startEdit(s: Student): void {
+  startEdit(s: StudentSubmission): void {
     this.editingId = s.id ?? null;
     this.errorMessage = '';
     this.successMessage = '';
@@ -476,7 +485,7 @@ export class StudentFormComponent implements OnInit {
   }
 
   // reload cascading lookups for editing
-  private loadCascadeForEdit(s: Student): void {
+  private loadCascadeForEdit(s: StudentSubmission): void {
     forkJoin({
       sessions: this.studentService.getSessions(s.boardId),
       schools: this.studentService.getSchools(s.boardId, s.sessionId),
@@ -505,7 +514,7 @@ export class StudentFormComponent implements OnInit {
   }
 
   // fill the form from a student
-  private patchStudentForm(s: Student): void {
+  private patchStudentForm(s: StudentSubmission): void {
     this.form.patchValue({
       firstName: s.firstName,
       lastName: s.lastName,
@@ -551,10 +560,10 @@ export class StudentFormComponent implements OnInit {
   }
 
   // delete a student
-  deleteStudent(student: Student): void {
+  deleteStudent(student: StudentSubmission): void {
     if (student.id == null) return;
     if (!confirm(`Delete student "${student.firstName} ${student.lastName}"?`)) return;
-    this.studentService.deleteStudent(student.id).subscribe({
+    this.studentService.deleteSubmission(student.id).subscribe({
       next: () => {
         this.students = this.students.filter(s => s.id !== student.id);
         this.searchStudents();
@@ -664,7 +673,7 @@ export class StudentFormComponent implements OnInit {
   }
 
   // pack form values into a student DTO
-  private buildStudentFromForm(): Student {
+  private buildStudentFromForm(): Partial<StudentSubmission> {
     const val = this.form.value;
     return {
       firstName: val.firstName ?? '',
@@ -711,7 +720,7 @@ export class StudentFormComponent implements OnInit {
     this.submitting = true;
 
     if (this.isEditing && this.editingId != null) {
-      this.studentService.updateStudent(this.editingId, student).subscribe({
+      this.studentService.updateSubmission(this.editingId, student).subscribe({
         next: (updated) => {
           this.successMessage = 'Student updated successfully.';
           this.submitting = false;
@@ -725,7 +734,7 @@ export class StudentFormComponent implements OnInit {
         }
       });
     } else {
-      this.studentService.createStudent(student).subscribe({
+      this.studentService.createSubmission(student).subscribe({
         next: () => {
           this.successMessage = 'Student registered successfully.';
           this.submitting = false;

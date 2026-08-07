@@ -14,12 +14,15 @@ export class AuthService {
   private currentUserSubject = new BehaviorSubject<AuthResponse | null>(this.loadUser());
   currentUser$: Observable<AuthResponse | null> = this.currentUserSubject.asObservable();
 
+  // injects HttpClient
   constructor(private http: HttpClient) {}
 
+  // getter for the currently stored user
   get currentUser(): AuthResponse | null {
     return this.currentUserSubject.getValue();
   }
 
+  // restores the user from localStorage at start-up
   private loadUser(): AuthResponse | null {
     try {
       const raw = localStorage.getItem(AuthService.STORAGE_KEY);
@@ -29,6 +32,7 @@ export class AuthService {
     }
   }
 
+  // persists or clears the user in localStorage
   private saveUser(user: AuthResponse | null): void {
     if (user) {
       localStorage.setItem(AuthService.STORAGE_KEY, JSON.stringify(user));
@@ -37,10 +41,12 @@ export class AuthService {
     }
   }
 
+  // fetches a fresh captcha from the server
   getCaptcha(): Observable<CaptchaResponse> {
     return this.http.get<CaptchaResponse>(`${this.apiUrl}/Auth/captcha`);
   }
 
+  // logs in and stores the returned user
   login(credentials: Credentials): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/Auth/login`, credentials).pipe(
       tap((res) => {
@@ -50,6 +56,7 @@ export class AuthService {
     );
   }
 
+  // registers a new account and stores the returned user
   register(payload: any): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/Auth/register`, payload).pipe(
       tap((res) => {
@@ -59,6 +66,7 @@ export class AuthService {
     );
   }
 
+  // requests a password change for the current user
   changePassword(currentPassword: string, newPassword: string): Observable<{ message: string }> {
     return this.http.post<{ message: string }>(`${this.apiUrl}/Auth/change-password`, {
       currentPassword,
@@ -66,6 +74,7 @@ export class AuthService {
     });
   }
 
+  // clears the stored user and returns a completed observable
   logout(): Observable<void> {
     this.currentUserSubject.next(null);
     this.saveUser(null);
@@ -75,14 +84,17 @@ export class AuthService {
     });
   }
 
+  // returns the current user's bearer token, if any
   getToken(): string | null {
     return this.currentUserSubject.getValue()?.token ?? null;
   }
 
+  // whether a user is currently logged in
   isLoggedIn(): boolean {
     return !!this.currentUserSubject.getValue();
   }
 
+  // whether the current user has the Admin role
   isAdmin(): boolean {
     return this.currentUserSubject.getValue()?.role === 'Admin';
   }

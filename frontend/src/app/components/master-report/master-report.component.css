@@ -26,6 +26,31 @@
   color: var(--ink);
 }
 
+:host-context(.dark-mode) {
+  --paper: #111827;
+  --surface: #1f2937;
+  --ink: #f8fafc;
+  --ink-dark: #0b1220;
+  --ink-soft: #cbd5e1;
+  --ink-faint: #94a3b8;
+  --rule: #334155;
+  --rule-strong: #475569;
+  --brass: #c99a4f;
+  --brass-dark: #e2c78f;
+  --brass-light: #d9a95c;
+  --brass-soft: #26354a;
+  --indigo: #a5b4fc;
+  --indigo-soft: #1e293b;
+  --success: #6ee7a0;
+  --success-bg: #173322;
+  --error: #f8b4b0;
+  --error-bg: #3a1c22;
+}
+
+:host-context(.dark-mode) .history-value {
+  color: #e5e7eb;
+}
+
 * { box-sizing: border-box; }
 
 /* ── Page ── */
@@ -205,10 +230,10 @@
   gap: .5rem;
   height: 3rem;
   padding: 0 1.1rem;
-  border: 1px solid var(--rule-strong);
+  border: 1px solid #4356d9;
   border-radius: 10px;
-  background: var(--surface);
-  color: var(--ink);
+  background: #fff;
+  color: #4356d9;
   font: inherit;
   font-size: .9rem;
   font-weight: 600;
@@ -218,13 +243,15 @@
 
 .report-action i {
   font-size: 1.05rem;
-  color: var(--brass);
+  color: #4356d9;
 }
 
 .report-action:hover:not(:disabled) {
-  border-color: var(--brass);
-  background: rgba(150, 112, 47, .07);
+  border-color: #3a4bc4;
+  background: linear-gradient(180deg, #5b7cfa 0%, #4356d9 100%);
+  color: #fff;
 }
+.report-action:hover:not(:disabled) i { color: #fff; }
 
 .report-action:active:not(:disabled) {
   transform: translateY(1px);
@@ -372,14 +399,15 @@
 }
 
 .chart-controls button:hover {
-  border-color: var(--ink-faint);
-  color: var(--ink);
+  border-color: #4356d9;
+  color: #4356d9;
 }
 
 .chart-controls button.active {
-  background: var(--brass-soft);
-  color: var(--brass-dark);
-  border-color: var(--rule-strong);
+  background: linear-gradient(180deg, #5b7cfa 0%, #4356d9 100%);
+  color: #fff;
+  border-color: #4356d9;
+  box-shadow: 0 2px 6px rgba(67, 86, 217, .3);
 }
 
 /* ── Bar chart ── */

@@ -15,6 +15,7 @@ namespace GuestApi.Controllers
     {
         private readonly DapperContext _db;
 
+        // injects the Dapper database context
         public ClassesController(DapperContext db) => _db = db;
 
         // get all classes

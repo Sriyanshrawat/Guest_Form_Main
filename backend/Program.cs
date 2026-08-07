@@ -446,7 +446,7 @@ using (var scope = app.Services.CreateScope())
         db.Database.ExecuteSqlRaw("ALTER TABLE `FullConfigurations` ADD COLUMN `DeletedDate` datetime(6) NULL;");
     }
 
-    // Students table
+    // Students table (approved registry)
     db.Database.ExecuteSqlRaw("""
         CREATE TABLE IF NOT EXISTS `Students` (
             `Id` int NOT NULL AUTO_INCREMENT,
@@ -490,6 +490,55 @@ using (var scope = app.Services.CreateScope())
             `CreatedAt` datetime(6) NOT NULL,
             CONSTRAINT `PK_Students` PRIMARY KEY (`Id`),
             CONSTRAINT `UX_Students_Email` UNIQUE (`Email`)
+        );
+        """);
+
+    // StudentSubmissions table (application queue). A registration lives here
+    // until an admin approves it; only APPROVED submissions are copied into
+    // the Students table (the approved registry).
+    db.Database.ExecuteSqlRaw("""
+        CREATE TABLE IF NOT EXISTS `StudentSubmissions` (
+            `Id` int NOT NULL AUTO_INCREMENT,
+            `FirstName` varchar(100) NOT NULL,
+            `LastName` varchar(100) NOT NULL,
+            `Gender` varchar(10) NOT NULL,
+            `DateOfBirth` datetime(6) NOT NULL,
+            `Email` varchar(150) NOT NULL,
+            `PhoneNumber` varchar(20) NULL,
+            `Address` varchar(200) NOT NULL,
+            `BloodGroup` varchar(10) NULL,
+            `FatherName` varchar(150) NOT NULL,
+            `MotherName` varchar(150) NOT NULL,
+            `FatherPhone` varchar(20) NOT NULL,
+            `MotherPhone` varchar(20) NOT NULL,
+            `EmergencyContactName` varchar(150) NULL,
+            `EmergencyContactPhone` varchar(20) NULL,
+            `AadhaarNumber` varchar(20) NULL,
+            `Nationality` varchar(50) NULL,
+            `Religion` varchar(50) NULL,
+            `MotherTongue` varchar(50) NULL,
+            `Category` varchar(20) NULL,
+            `EnrollmentNumber` varchar(20) NULL,
+            `RollNumber` varchar(20) NULL,
+            `BoardId` int NOT NULL,
+            `SessionId` int NOT NULL,
+            `SchoolId` int NOT NULL,
+            `ClassId` int NOT NULL,
+            `StreamId` int NULL,
+            `SpecializationId` int NULL,
+            `Username` varchar(100) NOT NULL,
+            `StudentId` int NULL,
+            `IsActive` tinyint(1) NOT NULL DEFAULT 1,
+            `Status` varchar(20) NOT NULL DEFAULT 'Pending',
+            `ReviewNote` varchar(500) NULL,
+            `ReviewedBy` varchar(100) NULL,
+            `ReviewedDate` datetime(6) NULL,
+            `UpdatedBy` varchar(100) NULL,
+            `UpdatedDate` datetime(6) NULL,
+            `DeletedBy` varchar(100) NULL,
+            `DeletedDate` datetime(6) NULL,
+            `CreatedAt` datetime(6) NOT NULL,
+            CONSTRAINT `PK_StudentSubmissions` PRIMARY KEY (`Id`)
         );
         """);
 

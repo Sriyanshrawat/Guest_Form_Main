@@ -95,16 +95,17 @@
   margin: 0;
 }
 .sd-error button {
-  background: var(--brass);
-  color: #1c1a15;
+  background: linear-gradient(180deg, #d8a64a 0%, #b07f2b 100%);
+  color: #fff;
   border: none;
   border-radius: var(--radius, 4px);
   padding: 0.4rem 0.9rem;
   font-weight: 700;
   cursor: pointer;
+  box-shadow: 0 2px 6px rgba(176, 127, 43, .3);
 }
 .sd-error button:hover {
-  background: var(--brass-light);
+  background: linear-gradient(180deg, #e5b45a 0%, #a57525 100%);
 }
 .sd-cards {
   display: grid;

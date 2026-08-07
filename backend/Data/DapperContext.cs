@@ -6,6 +6,7 @@ namespace GuestApi.Data
     {
         private readonly string _connectionString;
 
+        // resolve the connection string from configuration
         public DapperContext(IConfiguration configuration)
         {
             _connectionString = configuration.GetConnectionString("DefaultConnection")
