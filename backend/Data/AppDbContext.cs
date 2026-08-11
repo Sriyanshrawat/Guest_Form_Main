@@ -161,7 +161,6 @@ namespace GuestApi.Data
                 entity.Property(e => e.MotherTongue).HasMaxLength(50);
                 entity.Property(e => e.Category).HasMaxLength(20);
                 entity.Property(e => e.EnrollmentNumber).HasMaxLength(20);
-                entity.Property(e => e.RollNumber).HasMaxLength(20);
                 entity.Property(e => e.IsActive).HasColumnType("tinyint(1)");
                 entity.Property(e => e.InsertedBy).HasMaxLength(100).IsRequired();
                 entity.Property(e => e.UpdatedBy).HasMaxLength(100);

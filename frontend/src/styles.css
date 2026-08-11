@@ -2,6 +2,18 @@
 @import 'ag-grid-community/styles/ag-grid.css';
 @import 'ag-grid-community/styles/ag-theme-quartz.css';
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  border: 0;
+  white-space: nowrap;
+}
+
 
 
 :root {
@@ -10,15 +22,40 @@
   --ink-800: #1a2029;
   --ink-700: #262e3a;
   --ink-600: #384254;
-  --paper: #10151c;
+  --ink-text: #1c1a15;
+  --paper-text-dim: #6b6455;
   --paper-dim: #d9d3c2;
-  --brass: #c6963c;
-  --brass-light: #e2b563;
   --steel: #6f97b3;
   --rust: #b1543a;
   --sage: #7a9b76;
-  --ink-text: #1c1a15;
-  --paper-text-dim: #6b6455;
+
+  /* App palette — single source of truth (light) */
+  --paper: #faf7f0;
+  --surface: #ffffff;
+  --ink: #1c2333;
+  --ink-2: #151b29;
+  --ink-soft: #5b6478;
+  --ink-faint: #8b93a7;
+  --ink-dark: #101726;
+  --rule: #e6e1d3;
+  --rule-strong: #d7cfb8;
+  --brass: #96702f;
+  --brass-dark: #7a5a24;
+  --brass-light: #c99a4f;
+  --brass-soft: #f5edda;
+  --indigo: #2e3a5f;
+  --indigo-soft: #eef0f7;
+  --success: #2f6844;
+  --success-bg: #eef5ef;
+  --error: #9c3b34;
+  --error-bg: #fbeeec;
+  --accent: #96702f;
+  --accent-soft: #f5edda;
+  --sidebar-1: #2b241d;
+  --sidebar-2: #1c1712;
+  --shadow-sm: 0 1px 2px rgba(28, 35, 51, .06);
+  --shadow-md: 0 10px 30px rgba(28, 35, 51, .07), 0 2px 6px rgba(28, 35, 51, .04);
+  --shadow-lg: 0 24px 60px rgba(28, 35, 51, .16), 0 4px 12px rgba(28, 35, 51, .06);
 
   /* Type */
   --font-display: 'Source Serif 4', Georgia, serif;
@@ -56,7 +93,28 @@ html, body {
 }
 
 body.dark-mode {
+  /* App palette — single source of truth (dark) */
   --paper: #111827;
+  --surface: #1f2937;
+  --ink: #f8fafc;
+  --ink-2: #10151c;
+  --ink-soft: #cbd5e1;
+  --ink-faint: #94a3b8;
+  --ink-dark: #0b1220;
+  --rule: #334155;
+  --rule-strong: #475569;
+  --brass: #c99a4f;
+  --brass-dark: #e2c78f;
+  --brass-light: #d9a95c;
+  --brass-soft: #26354a;
+  --indigo: #a5b4fc;
+  --indigo-soft: #1e293b;
+  --success: #6ee7a0;
+  --success-bg: #173322;
+  --error: #fca5a5;
+  --error-bg: #3a1c22;
+  --accent: #c99a4f;
+  --accent-soft: #26354a;
   --paper-dim: #1f2937;
   --ink-text: #e5e7eb;
   --paper-text-dim: #94a3b8;

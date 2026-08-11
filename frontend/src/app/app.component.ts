@@ -19,11 +19,20 @@ export class AppComponent implements OnInit {
   profileOpen = false;
 
   @ViewChild('profileWrap') profileWrap?: ElementRef<HTMLDivElement>;
+  @ViewChild('avatarFileInput') avatarFileInput?: ElementRef<HTMLInputElement>;
   passwordModalOpen = false;
   passwordForm: FormGroup;
   passwordSubmitting = false;
   passwordMessage = '';
   passwordMessageType: 'error' | 'success' = 'error';
+  settingsOpen = false;
+  avatarSubmitting = false;
+  avatarMessage = '';
+  avatarMessageType: 'error' | 'success' = 'error';
+  usernameForm: FormGroup;
+  usernameSubmitting = false;
+  usernameMessage = '';
+  usernameMessageType: 'error' | 'success' = 'error';
 
   // builds the password change reactive form
   constructor(public authService: AuthService, private router: Router, private fb: FormBuilder) {
@@ -31,6 +40,10 @@ export class AppComponent implements OnInit {
       currentPassword: ['', Validators.required],
       newPassword: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', Validators.required]
+    });
+    this.usernameForm = this.fb.group({
+      newUsername: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(50)]],
+      currentPassword: ['', Validators.required]
     });
   }
 
@@ -47,6 +60,7 @@ export class AppComponent implements OnInit {
   onEscape(): void {
     this.profileOpen = false;
     if (this.passwordModalOpen) this.closePasswordModal();
+    if (this.settingsOpen) this.closeSettingsModal();
   }
 
   // init
@@ -84,6 +98,127 @@ export class AppComponent implements OnInit {
     this.passwordModalOpen = false;
     this.passwordMessage = '';
     this.passwordForm.reset();
+  }
+
+  // open settings modal
+  openSettingsModal(): void {
+    this.profileOpen = false;
+    this.avatarMessage = '';
+    this.usernameMessage = '';
+    this.usernameForm.reset();
+    this.settingsOpen = true;
+  }
+
+  // close settings modal
+  closeSettingsModal(): void {
+    this.settingsOpen = false;
+    this.avatarMessage = '';
+    this.usernameMessage = '';
+    this.usernameForm.reset();
+  }
+
+  // change the account username
+  changeUsername(): void {
+    this.usernameMessage = '';
+    const form = this.usernameForm;
+
+    if (form.invalid) {
+      form.markAllAsTouched();
+      this.usernameMessage = 'Enter a username of 3-50 characters and your current password.';
+      this.usernameMessageType = 'error';
+      return;
+    }
+
+    this.usernameSubmitting = true;
+    this.authService
+      .updateUsername(form.value.newUsername, form.value.currentPassword)
+      .subscribe({
+        next: () => {
+          this.usernameSubmitting = false;
+          this.usernameMessage = 'Username updated successfully.';
+          this.usernameMessageType = 'success';
+          form.reset();
+        },
+        error: (err) => {
+          this.usernameSubmitting = false;
+          this.usernameMessage =
+            err?.error?.message || err?.message || 'Could not change the username. Please try again.';
+          this.usernameMessageType = 'error';
+        }
+      });
+  }
+
+  // trigger the hidden avatar file picker
+  triggerAvatarUpload(): void {
+    this.avatarFileInput?.nativeElement.click();
+  }
+
+  // handle the selected avatar file: validate, read as data URI, upload
+  onAvatarFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!validTypes.includes(file.type)) {
+      this.avatarMessage = 'Please choose a JPG, PNG, WEBP or GIF image.';
+      this.avatarMessageType = 'error';
+      input.value = '';
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      this.avatarMessage = 'The image must be smaller than 2 MB.';
+      this.avatarMessageType = 'error';
+      input.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUri = reader.result as string;
+      this.avatarSubmitting = true;
+      this.avatarMessage = '';
+      this.authService.updateProfilePicture(dataUri).subscribe({
+        next: () => {
+          this.avatarSubmitting = false;
+          this.avatarMessage = 'Profile picture updated.';
+          this.avatarMessageType = 'success';
+        },
+        error: (err) => {
+          this.avatarSubmitting = false;
+          this.avatarMessage =
+            err?.error?.message || err?.message || 'Could not update the profile picture.';
+          this.avatarMessageType = 'error';
+        }
+      });
+    };
+    reader.readAsDataURL(file);
+    input.value = '';
+  }
+
+  // remove the profile picture
+  removeProfilePicture(): void {
+    this.avatarSubmitting = true;
+    this.avatarMessage = '';
+    this.authService.updateProfilePicture('').subscribe({
+      next: () => {
+        this.avatarSubmitting = false;
+        this.avatarMessage = 'Profile picture removed.';
+        this.avatarMessageType = 'success';
+      },
+      error: (err) => {
+        this.avatarSubmitting = false;
+        this.avatarMessage =
+          err?.error?.message || err?.message || 'Could not remove the profile picture.';
+        this.avatarMessageType = 'error';
+      }
+    });
+  }
+
+  // profile picture data URI, if any
+  avatarSrc(user: AuthResponse): string {
+    return user.profilePicture?.trim() ? user.profilePicture : '';
   }
 
   // change password
@@ -165,6 +300,7 @@ export class AppComponent implements OnInit {
   isSidebarRoute(): boolean {
     return this.router.url.startsWith('/submit') ||
       this.router.url.startsWith('/student-dashboard') ||
+      this.router.url.startsWith('/my-application') ||
       this.router.url.startsWith('/dashboard') ||
       this.router.url.startsWith('/admin') ||
       this.router.url.startsWith('/applications') ||

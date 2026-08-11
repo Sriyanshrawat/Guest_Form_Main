@@ -1,0 +1,102 @@
+<section class="course-page">
+  <header class="course-page__heading">
+    <div>
+      <h1>Specializations</h1>
+    </div>
+  </header>
+
+  <section class="course-card">
+    <div class="course-card__title">
+      <span class="course-icon"><i class="bi bi-diagram-3"></i></span>
+      <div>
+        <h2>{{ editingId == null ? "Add a specialization" : "Edit specialization details" }}</h2>
+      </div>
+    </div>
+
+    <div class="course-form">
+      <label><span>Select school <b>*</b></span>
+        <select [(ngModel)]="selectedSchoolId" name="schoolId" (change)="onSchoolChange()">
+          <option [ngValue]="null" disabled>Select a school</option>
+          <option *ngFor="let school of schools" [ngValue]="school.id">{{ school.name }}</option>
+        </select>
+      </label>
+
+      <label><span>Select class <b>*</b></span>
+        <select [(ngModel)]="selectedClassId" name="classId" [disabled]="!selectedSchoolId" (change)="onClassChange()">
+          <option [ngValue]="null" disabled>{{ selectedSchoolId ? "Select a class" : "Pick a school first" }}</option>
+          <option *ngFor="let cls of eligibleClasses" [ngValue]="cls.id">{{ cls.name }} — {{ cls.section }}</option>
+        </select>
+      </label>
+
+      <label><span>Assigned stream <b>*</b></span>
+        <select [(ngModel)]="selectedStreamId" name="streamId" [disabled]="!selectedClassId || classStreams.length <= 1" (change)="onStreamChange()">
+          <option [ngValue]="null" disabled>{{ !selectedClassId ? "Pick a class first" : (classStreams.length === 0 ? "No streams for this class" : (classStreams.length === 1 ? classStreams[0].name + (classStreams[0].acronym ? ' — ' + classStreams[0].acronym : '') : "Select a stream")) }}</option>
+          <option *ngFor="let stream of classStreams" [ngValue]="stream.id">{{ stream.name }}<ng-container *ngIf="stream.acronym"> — {{ stream.acronym }}</ng-container></option>
+        </select>
+      </label>
+
+      <label><span>Specialization name <b>*</b></span>
+        <input [(ngModel)]="specName" name="specName" type="text" placeholder="For example, PCM (Physics, Chemistry, Maths)" [disabled]="!selectedClassId" (keyup.enter)="saveSpecialization()" />
+      </label>
+    </div>
+
+    <div class="course-card__actions">
+      <button type="button" class="button button--quiet" (click)="clearForm()"><i class="bi bi-arrow-counterclockwise"></i> Reset</button>
+      <button type="button" class="button button--save" (click)="saveSpecialization()" [disabled]="saving">
+        <i class="bi bi-check2"></i> {{ saving ? "Saving..." : editingId == null ? "Save specialization" : "Update specialization" }}
+      </button>
+    </div>
+
+    <p class="notice notice--error" *ngIf="errorMessage"><i class="bi bi-exclamation-circle"></i>{{ errorMessage }}</p>
+    <p class="notice notice--success" *ngIf="message"><i class="bi bi-check-circle"></i>{{ message }}</p>
+  </section>
+
+  <section class="course-card course-card--list">
+    <div class="course-list__header">
+      <div>
+        <h2><i class="bi bi-collection"></i> Specialization library</h2>
+        <span>{{ filteredSpecializations.length }} specialization{{ filteredSpecializations.length === 1 ? "" : "s" }} shown</span>
+      </div>
+      <label class="search"><i class="bi bi-search"></i>
+        <input [(ngModel)]="searchTerm" name="specSearch" type="search" placeholder="Find a specialization or class" aria-label="Find a specialization or class" />
+      </label>
+    </div>
+
+    <div class="course-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>School</th>
+            <th>Class &amp; section</th>
+            <th>Specialization</th>
+            <th>Stream</th>
+            <th class="action-column">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of filteredSpecializations">
+            <td>{{ item.schoolName || "—" }}</td>
+            <td><div class="course-chip">{{ (item.className || "—") + (item.classSection ? " — " + item.classSection : "") }}</div></td>
+            <td><strong>{{ item.name }}</strong></td>
+            <td>
+              <span class="cell-stream" [class.cell-stream--empty]="!item.streamName">
+                <i class="bi bi-diagram-3" *ngIf="item.streamName"></i>
+                {{ item.streamName || "Not assigned" }}
+              </span>
+            </td>
+            <td class="actions">
+              <button type="button" (click)="editSpecialization(item)"><i class="bi bi-pencil"></i><span>Edit</span></button>
+              <button type="button" class="delete" (click)="deleteSpecialization(item)"><i class="bi bi-trash3"></i><span>Delete</span></button>
+            </td>
+          </tr>
+          <tr *ngIf="!loading && filteredSpecializations.length === 0">
+            <td colspan="5" class="empty"><i class="bi bi-inbox"></i>No specializations found yet.</td>
+          </tr>
+          <tr *ngIf="loading">
+            <td colspan="5" class="empty">Loading specializations...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</section>

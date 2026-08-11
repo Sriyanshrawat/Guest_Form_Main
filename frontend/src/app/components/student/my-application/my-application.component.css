@@ -1,0 +1,238 @@
+.my-application-page {
+  padding: 1.5rem;
+}
+
+.page-header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.page-header h1 {
+  margin: 0 0 0.3rem;
+  color: var(--ink);
+}
+
+.page-header p {
+  margin: 0;
+  color: var(--ink-soft);
+}
+
+.eyebrow {
+  color: var(--ink-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 0.72rem;
+  margin: 0 0 0.5rem;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.status-panel {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.status-item {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 1rem;
+  padding: 1rem 1.25rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.status-item span {
+  display: block;
+  color: var(--ink-faint);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.status-item strong {
+  display: block;
+  font-size: 1.25rem;
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.status-badge {
+  display: inline-block !important;
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.8rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  font-family: inherit !important;
+}
+
+.status--approved {
+  background: var(--success-bg);
+  color: var(--success) !important;
+}
+
+.status--rejected {
+  background: var(--error-bg);
+  color: var(--error) !important;
+}
+
+.status--pending {
+  background: var(--brass-soft);
+  color: var(--brass-dark) !important;
+}
+
+.application-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.application-card {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.application-card h2 {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: var(--ink-2);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.application-card h2 i {
+  color: var(--brass);
+  font-size: 1rem;
+}
+
+.application-card dl {
+  display: grid;
+  gap: 0.75rem 0.5rem;
+  grid-template-columns: auto 1fr;
+  margin: 0;
+}
+
+.application-card dt {
+  color: var(--ink-faint);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding-top: 0.1rem;
+}
+
+.application-card dd {
+  margin: 0;
+  color: var(--ink);
+  font-weight: 600;
+  text-align: right;
+  word-break: break-word;
+}
+
+.empty-state,
+.error-box,
+.spinner {
+  margin-top: 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 1rem;
+  padding: 1.5rem;
+}
+
+.spinner {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--ink-soft);
+}
+
+.spinner i {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.error-box {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--error);
+  background: var(--error-bg);
+  border-color: color-mix(in srgb, var(--error) 30%, transparent);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 1.5rem;
+}
+
+.empty-icon {
+  font-size: 2.5rem;
+  color: var(--ink-faint);
+  margin-bottom: 0.5rem;
+}
+
+.empty-state h2 {
+  margin: 0 0 0.3rem;
+  color: var(--ink);
+}
+
+.empty-state p {
+  margin: 0 0 1.25rem;
+  color: var(--ink-soft);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.25rem;
+  border-radius: 0.75rem;
+  border: none;
+  text-decoration: none;
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.86rem;
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.btn-primary {
+  color: #fff;
+  background: linear-gradient(180deg, var(--brass-light) 0%, var(--brass-dark) 100%);
+}
+
+.btn-primary:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+
+@media (max-width: 700px) {
+  .page-header {
+    grid-template-columns: 1fr;
+  }
+
+  .page-header .btn {
+    width: 100%;
+  }
+
+  .status-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .my-application-page {
+    padding: 1rem;
+  }
+}

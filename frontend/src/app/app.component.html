@@ -74,14 +74,6 @@
         <i class="bi bi-diagram-3"></i>
         <span>Streams</span>
       </a>
-      <!-- <a
-        routerLink="/master-report"
-        routerLinkActive="sidebar__submenu-link--active"
-        class="sidebar__submenu-link"
-      >
-        <i class="bi bi-bar-chart-fill"></i>
-        <span>Master Report</span>
-      </a> -->
       <a
         routerLink="/specializations"
         routerLinkActive="sidebar__submenu-link--active"
@@ -142,16 +134,12 @@
         <i class="bi bi-person-vcard-fill"></i>
         <span>Registration Form</span>
       </a>
-    </ng-container>
 
-    <!-- <a
-      routerLink="/submit"
-      routerLinkActive="sidebar__item--active"
-      class="sidebar__item"
-    >
-      <i class="bi bi-person-vcard-fill"></i>
-      <span>Student </span>
-    </a> -->
+      <a routerLink="/my-application" routerLinkActive="sidebar__item--active" class="sidebar__item">
+        <i class="bi bi-file-earmark-text-fill"></i>
+        <span>My Application</span>
+      </a>
+    </ng-container>
   </aside>
 
   <section class="app-shell__content">
@@ -181,9 +169,11 @@
           >
             <span
               class="profile__avatar"
-              [style.background]="avatarColor(profileInitials(user))"
-              >{{ profileInitials(user) }}</span
+              [style.background]="avatarSrc(user) ? 'transparent' : avatarColor(profileInitials(user))"
             >
+              <img *ngIf="avatarSrc(user)" [src]="avatarSrc(user)" alt="Profile picture" class="profile__avatar-img" />
+              <ng-container *ngIf="!avatarSrc(user)">{{ profileInitials(user) }}</ng-container>
+            </span>
             <span class="profile__meta">
               <strong>{{ user.username }}</strong>
               <span>{{ roleLabel(user) }}</span>
@@ -196,11 +186,18 @@
 
           <div class="profile__menu" *ngIf="profileOpen" role="menu">
             <div class="profile__menu-header">
-              <span
-                class="profile__avatar profile__avatar--lg"
-                [style.background]="avatarColor(profileInitials(user))"
-                >{{ profileInitials(user) }}</span
+              <button
+                type="button"
+                class="profile__avatar profile__avatar--lg profile__avatar--edit"
+                (click)="triggerAvatarUpload()"
+                [title]="'Change profile picture'"
+                [attr.aria-label]="'Change profile picture'"
+                [style.background]="avatarSrc(user) ? 'transparent' : avatarColor(profileInitials(user))"
               >
+                <img *ngIf="avatarSrc(user)" [src]="avatarSrc(user)" alt="Profile picture" class="profile__avatar-img" />
+                <ng-container *ngIf="!avatarSrc(user)">{{ profileInitials(user) }}</ng-container>
+                <span class="profile__avatar-camera"><i class="bi bi-camera-fill"></i></span>
+              </button>
               <div class="profile__menu-id">
                 <strong>{{ user.username }}</strong>
                 <span class="profile__menu-role">{{ roleLabel(user) }}</span>
@@ -217,6 +214,22 @@
                 <dd>{{ roleLabel(user) }}</dd>
               </div>
             </dl>
+
+            <button
+              class="profile__menu-item"
+              type="button"
+              (click)="triggerAvatarUpload()"
+            >
+              <i class="bi bi-person-bounding-box"></i> Change Photo
+            </button>
+
+            <button
+              class="profile__menu-item"
+              type="button"
+              (click)="openSettingsModal()"
+            >
+              <i class="bi bi-gear"></i> Settings
+            </button>
 
             <button
               class="profile__menu-item"
@@ -243,6 +256,17 @@
     </main>
   </section>
 </div>
+
+<!-- Hidden avatar file picker -->
+<input
+  #avatarFileInput
+  type="file"
+  accept="image/jpeg,image/png,image/webp,image/gif"
+  class="avatar-file-input"
+  (change)="onAvatarFileSelected($event)"
+  aria-hidden="true"
+  tabindex="-1"
+/>
 
 <!-- Change Password modal -->
 <div
@@ -314,6 +338,155 @@
         </button>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- Settings modal -->
+<div
+  class="settings-modal"
+  *ngIf="settingsOpen"
+  (click)="closeSettingsModal()"
+>
+  <div
+    class="settings-modal__dialog"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="settings-modal-title"
+    (click)="$event.stopPropagation()"
+  >
+    <header class="settings-modal__header">
+      <div>
+        <h2 id="settings-modal-title">Settings</h2>
+        <p>Manage your account and preferences.</p>
+      </div>
+      <button
+        class="settings-modal__close"
+        type="button"
+        (click)="closeSettingsModal()"
+        [attr.aria-label]="'Close'"
+      >
+        &times;
+      </button>
+    </header>
+
+    <div class="settings-modal__body">
+      <p
+        class="settings-modal__msg"
+        *ngIf="avatarMessage"
+        [class.settings-modal__msg--error]="avatarMessageType === 'error'"
+        [class.settings-modal__msg--success]="avatarMessageType === 'success'"
+      >
+        {{ avatarMessage }}
+      </p>
+
+      <section class="settings-modal__section">
+        <h3>Profile Picture</h3>
+        <div class="settings-modal__avatar-row">
+          <span
+            class="profile__avatar profile__avatar--lg"
+            [style.background]="avatarSrc(authService.currentUser!) ? 'transparent' : avatarColor(profileInitials(authService.currentUser!))"
+          >
+            <img *ngIf="avatarSrc(authService.currentUser!)" [src]="avatarSrc(authService.currentUser!)" alt="Profile picture" class="profile__avatar-img" />
+            <ng-container *ngIf="!avatarSrc(authService.currentUser!)">{{ profileInitials(authService.currentUser!) }}</ng-container>
+          </span>
+          <div class="settings-modal__avatar-actions">
+            <button
+              class="settings-modal__btn settings-modal__btn--primary"
+              type="button"
+              (click)="triggerAvatarUpload()"
+              [disabled]="avatarSubmitting"
+            >
+              {{ avatarSubmitting ? 'Uploading...' : 'Change Photo' }}
+            </button>
+            <button
+              class="settings-modal__btn settings-modal__btn--ghost"
+              type="button"
+              (click)="removeProfilePicture()"
+              [disabled]="avatarSubmitting || !avatarSrc(authService.currentUser!)"
+            >
+              Remove
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section class="settings-modal__section">
+        <h3>Account</h3>
+        <div class="settings-modal__field">
+          <span>Username</span>
+          <strong>{{ authService.currentUser!.username }}</strong>
+        </div>
+        <div class="settings-modal__field">
+          <span>Role</span>
+          <strong>{{ roleLabel(authService.currentUser!) }}</strong>
+        </div>
+      </section>
+
+      <section class="settings-modal__section">
+        <h3>Change Username</h3>
+        <p
+          class="settings-modal__msg"
+          *ngIf="usernameMessage"
+          [class.settings-modal__msg--error]="usernameMessageType === 'error'"
+          [class.settings-modal__msg--success]="usernameMessageType === 'success'"
+        >
+          {{ usernameMessage }}
+        </p>
+
+        <form
+          class="settings-modal__form"
+          [formGroup]="usernameForm"
+          (ngSubmit)="changeUsername()"
+        >
+          <label class="password-modal__field">
+            <span>New username</span>
+            <input
+              type="text"
+              formControlName="newUsername"
+              autocomplete="username"
+              placeholder="3-50 characters"
+            />
+          </label>
+
+          <label class="password-modal__field">
+            <span>Current password</span>
+            <input
+              type="password"
+              formControlName="currentPassword"
+              autocomplete="current-password"
+            />
+          </label>
+
+          <div class="settings-modal__actions settings-modal__actions--stretch">
+            <button
+              class="password-modal__btn password-modal__btn--primary"
+              type="submit"
+              [disabled]="usernameSubmitting"
+            >
+              {{ usernameSubmitting ? 'Saving...' : 'Save Username' }}
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <section class="settings-modal__section">
+        <h3>Preferences</h3>
+        <label class="settings-modal__switch">
+          <input type="checkbox" [checked]="isDarkMode" (change)="toggleTheme()" />
+          <span>Dark mode</span>
+        </label>
+      </section>
+
+      <div class="settings-modal__actions">
+        <button
+          class="settings-modal__btn settings-modal__btn--ghost"
+          type="button"
+          (click)="closeSettingsModal()"
+        >
+          Close
+        </button>
+      </div>
+    </div>
   </div>
 </div>
 

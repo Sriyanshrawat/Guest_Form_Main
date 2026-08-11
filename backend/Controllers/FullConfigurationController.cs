@@ -162,7 +162,7 @@ namespace GuestApi.Controllers
             // prevent duplicate configuration
             var duplicate = await conn.QuerySingleAsync<int>(
                 StoredProcedures.FullConfig_DuplicateCheck,
-                new { pBoardId = dto.BoardId, pSessionId = dto.SessionId, pSchoolId = dto.SchoolId, pClassId = dto.ClassId },
+                new { pBoardId = dto.BoardId, pSessionId = dto.SessionId, pSchoolId = dto.SchoolId, pClassId = dto.ClassId, pExcludeId = 0 },
                 commandType: CommandType.StoredProcedure);
 
             if (duplicate > 0)
@@ -293,7 +293,7 @@ namespace GuestApi.Controllers
 
         // parent existence checks
         private Task<int> BoardExists(System.Data.IDbConnection conn, int id) =>
-            conn.QuerySingleAsync<int>(StoredProcedures.School_BoardExists, new { pBoardId = id }, commandType: CommandType.StoredProcedure);
+            conn.QuerySingleAsync<int>(StoredProcedures.SchoolBoard_ActiveExists, new { pBoardId = id }, commandType: CommandType.StoredProcedure);
 
         private Task<int> SessionExists(System.Data.IDbConnection conn, int id) =>
             conn.QuerySingleAsync<int>(StoredProcedures.Session_ActiveExists, new { pId = id }, commandType: CommandType.StoredProcedure);

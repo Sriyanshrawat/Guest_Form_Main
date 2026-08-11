@@ -1,28 +1,6 @@
 :host {
   display: block;
-  --paper: #faf7f0;
-  --surface: #ffffff;
-  --ink: #1c2333;
-  --ink-soft: #5b6478;
-  --ink-faint: #8b93a7;
-  --rule: #e6e1d3;
-  --rule-strong: #d7cfb8;
-  --brass: #96702f;
-  --brass-dark: #7a5a24;
-  --brass-light: #c99a4f;
-  --brass-soft: #f5edda;
-  --indigo: #2e3a5f;
-  --error: #9c3b34;
-  --error-bg: #fbeeec;
-  --shadow-sm: 0 1px 2px rgba(28, 35, 51, .06);
-  --shadow-lg: 0 30px 70px rgba(28, 35, 51, .22), 0 10px 26px rgba(28, 35, 51, .1);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-}
-
-:host-context(.dark-mode) {
-  --paper: #111827; --surface: #1f2937; --ink: #f8fafc; --ink-soft: #cbd5e1;
-  --ink-faint: #94a3b8; --rule: #334155; --rule-strong: #475569;
-  --brass-soft: #26354a; --error-bg: #3a1c22;
 }
 
 * { box-sizing: border-box; }

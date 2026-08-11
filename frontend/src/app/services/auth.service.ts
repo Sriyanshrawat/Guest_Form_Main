@@ -22,7 +22,9 @@ export class AuthService {
     return this.currentUserSubject.getValue();
   }
 
-  // restores the user from localStorage at start-up
+  // restores the user profile from localStorage. The JWT itself is an
+  // HttpOnly cookie set by the server, so it is never persisted here (it
+  // would otherwise be readable by any XSS payload).
   private loadUser(): AuthResponse | null {
     try {
       const raw = localStorage.getItem(AuthService.STORAGE_KEY);
@@ -32,7 +34,7 @@ export class AuthService {
     }
   }
 
-  // persists or clears the user in localStorage
+  // persists or clears the non-sensitive user profile in localStorage
   private saveUser(user: AuthResponse | null): void {
     if (user) {
       localStorage.setItem(AuthService.STORAGE_KEY, JSON.stringify(user));
@@ -46,7 +48,8 @@ export class AuthService {
     return this.http.get<CaptchaResponse>(`${this.apiUrl}/Auth/captcha`);
   }
 
-  // logs in and stores the returned user
+  // logs in and stores the returned user. The auth cookie is set by the
+  // server on this response.
   login(credentials: Credentials): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/Auth/login`, credentials).pipe(
       tap((res) => {
@@ -56,7 +59,8 @@ export class AuthService {
     );
   }
 
-  // registers a new account and stores the returned user
+  // registers a new account and stores the returned user. The auth cookie is
+  // set by the server on this response.
   register(payload: any): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/Auth/register`, payload).pipe(
       tap((res) => {
@@ -74,19 +78,44 @@ export class AuthService {
     });
   }
 
-  // clears the stored user and returns a completed observable
+  // updates the current user's profile picture and stores the refreshed user
+  updateProfilePicture(profilePicture: string): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/Auth/profile-picture`, { profilePicture }).pipe(
+      tap((res) => {
+        this.currentUserSubject.next(res);
+        this.saveUser(res);
+      })
+    );
+  }
+
+  // renames the current user's account and stores the refreshed user
+  updateUsername(newUsername: string, currentPassword: string): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/Auth/username`, {
+      newUsername,
+      currentPassword,
+    }).pipe(
+      tap((res) => {
+        this.currentUserSubject.next(res);
+        this.saveUser(res);
+      })
+    );
+  }
+
+  // clears the stored user. The HttpOnly cookie must be expired server-side,
+  // so this fires a logout request best-effort before clearing local state.
   logout(): Observable<void> {
+    this.http.post<void>(`${this.apiUrl}/Auth/logout`, {}).subscribe({
+      error: () => {
+        // ignore network failures; local state is cleared regardless
+      },
+      complete: () => {},
+    });
     this.currentUserSubject.next(null);
     this.saveUser(null);
     return new Observable<void>((subscriber) => {
       subscriber.next();
       subscriber.complete();
     });
-  }
-
-  // returns the current user's bearer token, if any
-  getToken(): string | null {
-    return this.currentUserSubject.getValue()?.token ?? null;
   }
 
   // whether a user is currently logged in

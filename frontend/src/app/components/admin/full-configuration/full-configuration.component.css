@@ -1,0 +1,359 @@
+:host {
+  display: block;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--ink);
+}
+
+:host-context(.dark-mode) .lookup-card--details {
+  background: linear-gradient(180deg, var(--surface) 0%, #182135 100%);
+}
+
+:host-context(.dark-mode) .detail-tile,
+:host-context(.dark-mode) .detail-block {
+  background: #1a2332;
+}
+
+:host-context(.dark-mode) .detail-block code {
+  color: #e2c78f;
+}
+
+:host-context(.dark-mode) .lookup-form select {
+  background-color: #1f2937;
+  color: #e5e7eb;
+}
+
+:host-context(.dark-mode) .lookup-form select:disabled {
+  background-color: #16202e;
+  color: #64748b;
+}
+
+* { box-sizing: border-box; }
+
+.lookup-page {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 3rem 2rem 4rem;
+  background: var(--paper);
+}
+
+.lookup-page__heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 1.2rem;
+  margin-bottom: 2.25rem;
+  padding-bottom: 1.75rem;
+  border-bottom: 1px solid var(--rule);
+  position: relative;
+}
+.lookup-page__heading::after {
+  content: '';
+  position: absolute;
+  left: 0; bottom: -1px;
+  width: 64px; height: 3px;
+  background: var(--brass);
+  border-radius: 2px;
+}
+.lookup-page__eyebrow {
+  display: flex; align-items: center; gap: .5rem;
+  color: var(--brass-dark);
+  font-size: .74rem; font-weight: 700;
+  letter-spacing: .16em; text-transform: uppercase;
+  font-family: 'IBM Plex Mono', monospace;
+}
+.lookup-page__eyebrow::before {
+  content: ''; width: 7px; height: 7px;
+  border-radius: 50%; background: var(--brass);
+}
+.lookup-page h1 {
+  margin: .5rem 0 0;
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-weight: 600; font-size: 2.35rem; letter-spacing: -.01em;
+}
+.lookup-page__heading p {
+  margin-top: .5rem; color: var(--ink-soft);
+  font-size: .98rem; max-width: 56ch;
+}
+.lookup-page__badge {
+  display: inline-flex; align-items: center; gap: .45rem;
+  padding: .45rem .9rem;
+  border: 1px solid var(--rule-strong);
+  border-radius: 999px;
+  color: var(--brass-dark);
+  background: var(--surface);
+  font-size: .82rem; font-weight: 600;
+  white-space: nowrap;
+}
+
+.lookup-card {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  padding: 1.5rem 1.75rem 1.75rem;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 1.5rem;
+}
+.lookup-card--details { background: linear-gradient(180deg, var(--surface) 0%, #fbf8ef 100%); }
+.lookup-card--empty   { background: var(--brass-soft); border-style: dashed; }
+
+.lookup-card__title {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1rem;
+  align-items: center;
+  padding-bottom: 1rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid var(--rule);
+}
+.lookup-icon {
+  width: 42px; height: 42px;
+  border-radius: 10px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--indigo-soft);
+  color: var(--indigo);
+  font-size: 1.1rem;
+}
+.lookup-card h2 {
+  margin: 0; font-family: 'Source Serif 4', Georgia, serif;
+  font-weight: 600; font-size: 1.25rem;
+}
+.lookup-card h2 + p {
+  margin: .25rem 0 0; color: var(--ink-soft); font-size: .9rem;
+}
+
+.lookup-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem 1.25rem;
+}
+.lookup-form label { display: flex; flex-direction: column; gap: .35rem; font-size: .85rem; color: var(--ink-soft); }
+.lookup-form label span { font-weight: 600; }
+.lookup-form select {
+  appearance: none;
+  padding: .65rem .9rem;
+  border: 1px solid var(--rule-strong);
+  border-radius: 8px;
+  background: #fff
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path fill='%235b6478' d='M6 8 0 0h12z'/></svg>")
+    no-repeat right .9rem center;
+  font-size: .95rem; color: var(--ink);
+  transition: border-color .15s, box-shadow .15s;
+}
+.lookup-form select:focus {
+  outline: none; border-color: var(--brass);
+  box-shadow: 0 0 0 3px rgba(150, 112, 47, .18);
+}
+.lookup-form select:disabled {
+  background-color: #f3efe2; color: var(--ink-faint); cursor: not-allowed;
+}
+
+.lookup-card__actions { display: flex; justify-content: flex-end; gap: .5rem; margin-top: 1rem; }
+.lookup-card__actions--save {
+  flex-direction: column;
+  align-items: stretch;
+  gap: .75rem;
+}
+.lookup-card__actions--save .notice { margin: 0; }
+.lookup-card__actions--save .button { align-self: flex-end; }
+.button {
+  display: inline-flex; align-items: center; gap: .4rem;
+  border: 1px solid transparent;
+  padding: .55rem 1.1rem; border-radius: 8px;
+  font-weight: 600; font-size: .9rem;
+  cursor: pointer; transition: all .15s;
+}
+.button--quiet { background: transparent; color: var(--ink-soft); border-color: var(--rule-strong); }
+.button--quiet:hover { color: var(--ink); border-color: var(--brass); }
+.button--primary {
+  border-color: #b07f2b;
+  background: linear-gradient(180deg, #d8a64a 0%, #b07f2b 100%);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(176, 127, 43, .3);
+}
+.button--primary:hover { box-shadow: 0 10px 24px rgba(176, 127, 43, .4); background: linear-gradient(180deg, #e5b45a 0%, #a57525 100%); border-color: #a57525; }
+.button--primary:disabled { opacity: .55; cursor: not-allowed; box-shadow: none; }
+
+.notice {
+  margin: 1rem 0 0; padding: .65rem .9rem;
+  border-radius: 8px; font-size: .88rem; display: flex; gap: .5rem; align-items: center;
+}
+.notice--error { background: var(--error-bg); color: var(--error); }
+.notice--success { background: var(--success-bg); color: var(--success); }
+
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: .85rem;
+  margin-bottom: 1.25rem;
+}
+.detail-tile {
+  display: flex; flex-direction: column; gap: .25rem;
+  padding: .8rem 1rem; background: #fff;
+  border: 1px solid var(--rule); border-radius: 10px;
+  box-shadow: var(--shadow-sm);
+}
+.detail-tile__label {
+  font-size: .72rem; font-weight: 700; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--brass-dark);
+  font-family: 'IBM Plex Mono', monospace;
+}
+.detail-tile strong { font-size: 1rem; color: var(--ink); }
+
+.details-subgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+.detail-block {
+  background: #fff; border: 1px solid var(--rule);
+  border-radius: 10px; padding: 1rem 1.1rem;
+}
+.detail-block h3 {
+  margin: 0 0 .5rem;
+  font-size: .9rem; font-weight: 700;
+  display: flex; gap: .5rem; align-items: center;
+  color: var(--indigo);
+}
+.detail-block ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: .35rem; }
+.detail-block li {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .4rem .6rem; background: var(--brass-soft);
+  border-radius: 6px; font-size: .88rem;
+}
+.detail-block code {
+  font-family: 'IBM Plex Mono', monospace; font-size: .78rem;
+  color: var(--brass-dark); background: rgba(150, 112, 47, .12);
+  padding: .1rem .4rem; border-radius: 4px;
+}
+.muted { color: var(--ink-faint); font-size: .88rem; margin: 0; }
+
+/* ---------- Saved Configurations table ---------- */
+.lookup-card--table {
+  overflow-x: auto;
+}
+.config-table {
+  width: 100%;
+  min-width: 980px;
+  border-collapse: collapse;
+}
+.config-table thead th {
+  padding: .85rem 1rem;
+  text-align: left;
+  background: var(--paper);
+  color: var(--ink-soft);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  font-family: 'IBM Plex Mono', monospace;
+  border-bottom: 1px solid var(--rule);
+}
+.config-table tbody td {
+  padding: .85rem 1rem;
+  border-bottom: 1px solid var(--rule);
+  font-size: .88rem;
+  color: var(--ink);
+  vertical-align: middle;
+}
+.config-table tbody tr { transition: background .12s ease; }
+.config-table tbody tr:last-child td { border-bottom: 0; }
+.config-table tbody tr:hover td { background: #fbf9f4; }
+.config-table tbody td:nth-child(6),
+.config-table tbody td:nth-child(7) {
+  min-width: 170px;
+}
+.config-values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem;
+  max-width: 260px;
+}
+.config-value {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  padding: .28rem .5rem;
+  border-radius: 6px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: .73rem;
+  font-weight: 700;
+}
+.config-value--specialization {
+  background: #f7e9f0;
+  color: #9b3f69;
+}
+.config-value--stream {
+  background: #eef1f8;
+  color: var(--indigo);
+}
+.config-empty { color: var(--ink-faint); }
+
+:host-context(.dark-mode) .config-table thead th {
+  background: #1a2332;
+}
+:host-context(.dark-mode) .config-table tbody tr:hover td {
+  background: #26354a !important;
+  border-color: #475569 !important;
+}
+:host-context(.dark-mode) .config-value--specialization { background: #4a263b; color: #f8bbd0; }
+:host-context(.dark-mode) .config-value--stream { background: #34435f; color: #dbeafe; }
+
+th.action-column { width: 9rem; }
+
+.actions {
+  white-space: nowrap;
+}
+
+.actions__content {
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+}
+
+.actions button {
+  display: inline-flex;
+  gap: .35rem;
+  align-items: center;
+  padding: .45rem .75rem;
+  border: 1px solid var(--rule-strong);
+  border-radius: 8px;
+  color: var(--ink-soft);
+  background: var(--surface);
+  cursor: pointer;
+  font: 700 .8rem 'Inter', sans-serif;
+  transition: all .12s ease;
+}
+
+.actions button:hover {
+  border-color: var(--ink-faint);
+  color: var(--ink);
+  background: var(--paper);
+}
+
+.actions .delete {
+  color: var(--error);
+  border-color: #f3cfc9;
+}
+
+.actions .delete:hover {
+  background: var(--error-bg);
+  border-color: var(--error);
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 700px) {
+  .lookup-page { padding: 1.5rem 1.1rem 2.5rem; }
+  .lookup-page__heading {
+    grid-template-columns: 1fr;
+    align-items: flex-start;
+  }
+  .lookup-page h1 { font-size: 1.7rem; }
+  .lookup-page__badge { width: fit-content; }
+  .lookup-card { padding: 1.1rem 1.25rem 1.35rem; }
+  .lookup-form { grid-template-columns: 1fr; }
+  .lookup-card__actions { flex-direction: column-reverse; }
+  .lookup-card__actions .button { width: 100%; justify-content: center; }
+  .details-grid,
+  .details-subgrid { grid-template-columns: 1fr; }
+}

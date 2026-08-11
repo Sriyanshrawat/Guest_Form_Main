@@ -64,9 +64,6 @@ namespace GuestApi.DTOs
         [MaxLength(20)]
         public string? EnrollmentNumber { get; set; }
 
-        [MaxLength(20)]
-        public string? RollNumber { get; set; }
-
         [Required]
         public int BoardId { get; set; }
 
@@ -111,7 +108,6 @@ namespace GuestApi.DTOs
         public string? MotherTongue { get; set; }
         public string? Category { get; set; }
         public string? EnrollmentNumber { get; set; }
-        public string? RollNumber { get; set; }
         public int BoardId { get; set; }
         public string? BoardName { get; set; }
         public int SessionId { get; set; }
@@ -173,7 +169,6 @@ namespace GuestApi.DTOs
         public string? MotherTongue { get; set; }
         public string? Category { get; set; }
         public string? EnrollmentNumber { get; set; }
-        public string? RollNumber { get; set; }
         public int BoardId { get; set; }
         public string? BoardName { get; set; }
         public int SessionId { get; set; }

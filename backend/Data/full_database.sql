@@ -24,6 +24,7 @@ CREATE TABLE users (
     Username      VARCHAR(50) NOT NULL UNIQUE,
     PasswordHash  VARCHAR(255) NOT NULL,
     Role          VARCHAR(20) NOT NULL DEFAULT 'User',
+    ProfilePicture LONGTEXT NULL,
     CreatedAt     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
@@ -220,7 +221,6 @@ CREATE TABLE Students (
     MotherTongue     VARCHAR(50) NULL,
     Category         VARCHAR(20) NULL,
     EnrollmentNumber VARCHAR(20) NULL,
-    RollNumber       VARCHAR(20) NULL,
     BoardId          INT NOT NULL,
     SessionId        INT NOT NULL,
     SchoolId         INT NOT NULL,
@@ -239,7 +239,13 @@ CREATE TABLE Students (
     DeletedDate      DATETIME(6) NULL,
     CreatedAt        DATETIME(6) NOT NULL,
 
-    CONSTRAINT UX_Students_Email UNIQUE (Email)
+    CONSTRAINT UX_Students_Email UNIQUE (Email),
+    CONSTRAINT FK_Students_SchoolBoards_BoardId FOREIGN KEY (BoardId) REFERENCES SchoolBoards (Id) ON DELETE RESTRICT,
+    CONSTRAINT FK_Students_Sessions_SessionId FOREIGN KEY (SessionId) REFERENCES Sessions (Id) ON DELETE RESTRICT,
+    CONSTRAINT FK_Students_Schools_SchoolId FOREIGN KEY (SchoolId) REFERENCES Schools (Id) ON DELETE RESTRICT,
+    CONSTRAINT FK_Students_Classes_ClassId FOREIGN KEY (ClassId) REFERENCES Classes (Id) ON DELETE RESTRICT,
+    CONSTRAINT FK_Students_Streams_StreamId FOREIGN KEY (StreamId) REFERENCES Streams (Id) ON DELETE SET NULL,
+    CONSTRAINT FK_Students_Specializations_SpecializationId FOREIGN KEY (SpecializationId) REFERENCES Specializations (Id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
 -- ============================================================
@@ -269,7 +275,6 @@ CREATE TABLE StudentSubmissions (
     MotherTongue     VARCHAR(50) NULL,
     Category         VARCHAR(20) NULL,
     EnrollmentNumber VARCHAR(20) NULL,
-    RollNumber       VARCHAR(20) NULL,
     BoardId          INT NOT NULL,
     SessionId        INT NOT NULL,
     SchoolId         INT NOT NULL,
@@ -278,6 +283,7 @@ CREATE TABLE StudentSubmissions (
     SpecializationId INT NULL,
     Username         VARCHAR(100) NOT NULL,
     StudentId        INT NULL,
+    ActiveEmail      VARCHAR(150) GENERATED ALWAYS AS (IF(IsActive = 1 AND Status IN ('Pending', 'Approved'), Email, NULL)) STORED,
     IsActive         TINYINT(1) NOT NULL DEFAULT 1,
     Status           VARCHAR(20) NOT NULL DEFAULT 'Pending',
     ReviewNote       VARCHAR(500) NULL,
@@ -287,7 +293,15 @@ CREATE TABLE StudentSubmissions (
     UpdatedDate      DATETIME(6) NULL,
     DeletedBy        VARCHAR(100) NULL,
     DeletedDate      DATETIME(6) NULL,
-    CreatedAt        DATETIME(6) NOT NULL
+    CreatedAt        DATETIME(6) NOT NULL,
+
+    CONSTRAINT UX_StudentSubmissions_ActiveEmail UNIQUE (ActiveEmail),
+    CONSTRAINT FK_StudentSubmissions_SchoolBoards_BoardId FOREIGN KEY (BoardId) REFERENCES SchoolBoards (Id) ON DELETE RESTRICT,
+    CONSTRAINT FK_StudentSubmissions_Sessions_SessionId FOREIGN KEY (SessionId) REFERENCES Sessions (Id) ON DELETE RESTRICT,
+    CONSTRAINT FK_StudentSubmissions_Schools_SchoolId FOREIGN KEY (SchoolId) REFERENCES Schools (Id) ON DELETE RESTRICT,
+    CONSTRAINT FK_StudentSubmissions_Classes_ClassId FOREIGN KEY (ClassId) REFERENCES Classes (Id) ON DELETE RESTRICT,
+    CONSTRAINT FK_StudentSubmissions_Streams_StreamId FOREIGN KEY (StreamId) REFERENCES Streams (Id) ON DELETE SET NULL,
+    CONSTRAINT FK_StudentSubmissions_Specializations_SpecializationId FOREIGN KEY (SpecializationId) REFERENCES Specializations (Id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 -- ============================================================
 -- STORED PROCEDURES (all 80)
@@ -321,7 +335,7 @@ DROP PROCEDURE IF EXISTS sp_Users_GetByUsername$$
 
 CREATE PROCEDURE sp_Users_GetByUsername(IN pUsername VARCHAR(50))
 BEGIN
-    SELECT Id, Username, PasswordHash, Role, CreatedAt
+    SELECT Id, Username, PasswordHash, Role, ProfilePicture, CreatedAt
     FROM users
     WHERE Username = pUsername
     LIMIT 1;
@@ -347,7 +361,7 @@ BEGIN
     INSERT INTO users (Username, PasswordHash, Role, CreatedAt)
     VALUES (pUsername, pPasswordHash, pRole, UTC_TIMESTAMP(6));
 
-    SELECT Id, Username, PasswordHash, Role, CreatedAt
+    SELECT Id, Username, PasswordHash, Role, ProfilePicture, CreatedAt
     FROM users
     WHERE Id = LAST_INSERT_ID();
 END$$
@@ -361,6 +375,51 @@ CREATE PROCEDURE sp_Users_UpdatePassword(
 )
 BEGIN
     UPDATE users SET PasswordHash = pPasswordHash WHERE Username = pUsername;
+END$$
+
+-- Updates the current user's profile picture (base64 data URI) and returns the row.
+DROP PROCEDURE IF EXISTS sp_Users_UpdateProfilePicture$$
+
+CREATE PROCEDURE sp_Users_UpdateProfilePicture(
+    IN pUsername VARCHAR(50),
+    IN pProfilePicture LONGTEXT
+)
+BEGIN
+    UPDATE users
+    SET ProfilePicture = pProfilePicture
+    WHERE Username = pUsername;
+
+    SELECT Id, Username, PasswordHash, Role, ProfilePicture, CreatedAt
+    FROM users
+    WHERE Username = pUsername
+    LIMIT 1;
+END$$
+
+-- Renames a user account and every reference that links it to their data
+-- (submissions and the approved registry), then returns the updated row.
+DROP PROCEDURE IF EXISTS sp_Users_UpdateUsername$$
+
+CREATE PROCEDURE sp_Users_UpdateUsername(
+    IN pCurrentUsername VARCHAR(50),
+    IN pNewUsername VARCHAR(50)
+)
+BEGIN
+    UPDATE users
+    SET Username = pNewUsername
+    WHERE Username = pCurrentUsername;
+
+    UPDATE StudentSubmissions
+    SET Username = pNewUsername
+    WHERE Username = pCurrentUsername;
+
+    UPDATE Students
+    SET InsertedBy = pNewUsername
+    WHERE InsertedBy = pCurrentUsername;
+
+    SELECT Id, Username, PasswordHash, Role, ProfilePicture, CreatedAt
+    FROM users
+    WHERE Username = pNewUsername
+    LIMIT 1;
 END$$
 
 -- ============================================================================
@@ -491,9 +550,9 @@ BEGIN
 END$$
 
 -- Returns 1 when the board exists, is active and not deleted.
-DROP PROCEDURE IF EXISTS sp_School_BoardExists$$
+DROP PROCEDURE IF EXISTS sp_SchoolBoard_ActiveExists$$
 
-CREATE PROCEDURE sp_School_BoardExists(IN pBoardId INT)
+CREATE PROCEDURE sp_SchoolBoard_ActiveExists(IN pBoardId INT)
 BEGIN
     SELECT COUNT(*)
     FROM SchoolBoards
@@ -1249,7 +1308,7 @@ BEGIN
            s.PhoneNumber, s.Address, s.BloodGroup, s.FatherName, s.MotherName,
            s.FatherPhone, s.MotherPhone, s.EmergencyContactName,
            s.EmergencyContactPhone, s.AadhaarNumber, s.Nationality, s.Religion,
-           s.MotherTongue, s.Category, s.EnrollmentNumber, s.RollNumber,
+           s.MotherTongue, s.Category, s.EnrollmentNumber,
            s.BoardId, b.UniversityName AS BoardName,
            s.SessionId, ses.Name AS SessionName,
            s.SchoolId, sch.Name AS SchoolName,
@@ -1279,7 +1338,7 @@ BEGIN
            s.PhoneNumber, s.Address, s.BloodGroup, s.FatherName, s.MotherName,
            s.FatherPhone, s.MotherPhone, s.EmergencyContactName,
            s.EmergencyContactPhone, s.AadhaarNumber, s.Nationality, s.Religion,
-           s.MotherTongue, s.Category, s.EnrollmentNumber, s.RollNumber,
+           s.MotherTongue, s.Category, s.EnrollmentNumber,
            s.BoardId, b.UniversityName AS BoardName,
            s.SessionId, ses.Name AS SessionName,
            s.SchoolId, sch.Name AS SchoolName,
@@ -1309,7 +1368,7 @@ BEGIN
            s.PhoneNumber, s.Address, s.BloodGroup, s.FatherName, s.MotherName,
            s.FatherPhone, s.MotherPhone, s.EmergencyContactName,
            s.EmergencyContactPhone, s.AadhaarNumber, s.Nationality, s.Religion,
-           s.MotherTongue, s.Category, s.EnrollmentNumber, s.RollNumber,
+           s.MotherTongue, s.Category, s.EnrollmentNumber,
            s.BoardId, b.UniversityName AS BoardName,
            s.SessionId, ses.Name AS SessionName,
            s.SchoolId, sch.Name AS SchoolName,
@@ -1370,7 +1429,7 @@ CREATE PROCEDURE sp_Student_Create(
     IN pAadhaarNumber VARCHAR(20), IN pNationality VARCHAR(50),
     IN pReligion VARCHAR(50), IN pMotherTongue VARCHAR(50),
     IN pCategory VARCHAR(20), IN pEnrollmentNumber VARCHAR(20),
-    IN pRollNumber VARCHAR(20), IN pBoardId INT, IN pSessionId INT,
+    IN pBoardId INT, IN pSessionId INT,
     IN pSchoolId INT, IN pClassId INT, IN pStreamId INT, IN pSpecializationId INT,
     IN pInsertedBy VARCHAR(100)
 )
@@ -1379,14 +1438,14 @@ BEGIN
         FirstName, LastName, Gender, DateOfBirth, Email, PhoneNumber, Address,
         BloodGroup, FatherName, MotherName, FatherPhone, MotherPhone,
         EmergencyContactName, EmergencyContactPhone, AadhaarNumber, Nationality,
-        Religion, MotherTongue, Category, EnrollmentNumber, RollNumber,
+        Religion, MotherTongue, Category, EnrollmentNumber,
         BoardId, SessionId, SchoolId, ClassId, StreamId, SpecializationId,
         IsActive, Status, InsertedBy, CreatedAt
     ) VALUES (
         pFirstName, pLastName, pGender, pDateOfBirth, pEmail, pPhoneNumber, pAddress,
         pBloodGroup, pFatherName, pMotherName, pFatherPhone, pMotherPhone,
         pEmergencyContactName, pEmergencyContactPhone, pAadhaarNumber, pNationality,
-        pReligion, pMotherTongue, pCategory, pEnrollmentNumber, pRollNumber,
+        pReligion, pMotherTongue, pCategory, pEnrollmentNumber,
         pBoardId, pSessionId, pSchoolId, pClassId, pStreamId, pSpecializationId,
         1, 'Pending', pInsertedBy, UTC_TIMESTAMP(6)
     );
@@ -1395,7 +1454,7 @@ BEGIN
            s.PhoneNumber, s.Address, s.BloodGroup, s.FatherName, s.MotherName,
            s.FatherPhone, s.MotherPhone, s.EmergencyContactName,
            s.EmergencyContactPhone, s.AadhaarNumber, s.Nationality, s.Religion,
-           s.MotherTongue, s.Category, s.EnrollmentNumber, s.RollNumber,
+           s.MotherTongue, s.Category, s.EnrollmentNumber,
            s.BoardId, b.UniversityName AS BoardName,
            s.SessionId, ses.Name AS SessionName,
            s.SchoolId, sch.Name AS SchoolName,
@@ -1429,7 +1488,7 @@ CREATE PROCEDURE sp_Student_Update(
     IN pAadhaarNumber VARCHAR(20), IN pNationality VARCHAR(50),
     IN pReligion VARCHAR(50), IN pMotherTongue VARCHAR(50),
     IN pCategory VARCHAR(20), IN pEnrollmentNumber VARCHAR(20),
-    IN pRollNumber VARCHAR(20), IN pBoardId INT, IN pSessionId INT,
+    IN pBoardId INT, IN pSessionId INT,
     IN pSchoolId INT, IN pClassId INT, IN pStreamId INT, IN pSpecializationId INT,
     IN pUpdatedBy VARCHAR(100)
 )
@@ -1445,7 +1504,7 @@ BEGIN
         AadhaarNumber = pAadhaarNumber, Nationality = pNationality,
         Religion = pReligion, MotherTongue = pMotherTongue,
         Category = pCategory, EnrollmentNumber = pEnrollmentNumber,
-        RollNumber = pRollNumber, BoardId = pBoardId, SessionId = pSessionId,
+        BoardId = pBoardId, SessionId = pSessionId,
         SchoolId = pSchoolId, ClassId = pClassId, StreamId = pStreamId,
         SpecializationId = pSpecializationId,
         Status = 'Pending', ReviewNote = NULL, ReviewedBy = NULL, ReviewedDate = NULL,
@@ -1456,7 +1515,7 @@ BEGIN
            s.PhoneNumber, s.Address, s.BloodGroup, s.FatherName, s.MotherName,
            s.FatherPhone, s.MotherPhone, s.EmergencyContactName,
            s.EmergencyContactPhone, s.AadhaarNumber, s.Nationality, s.Religion,
-           s.MotherTongue, s.Category, s.EnrollmentNumber, s.RollNumber,
+           s.MotherTongue, s.Category, s.EnrollmentNumber,
            s.BoardId, b.UniversityName AS BoardName,
            s.SessionId, ses.Name AS SessionName,
            s.SchoolId, sch.Name AS SchoolName,
@@ -1511,7 +1570,7 @@ BEGIN
            s.PhoneNumber, s.Address, s.BloodGroup, s.FatherName, s.MotherName,
            s.FatherPhone, s.MotherPhone, s.EmergencyContactName,
            s.EmergencyContactPhone, s.AadhaarNumber, s.Nationality, s.Religion,
-           s.MotherTongue, s.Category, s.EnrollmentNumber, s.RollNumber,
+           s.MotherTongue, s.Category, s.EnrollmentNumber,
            s.BoardId, b.UniversityName AS BoardName,
            s.SessionId, ses.Name AS SessionName,
            s.SchoolId, sch.Name AS SchoolName,
@@ -1552,7 +1611,7 @@ BEGIN
            s.PhoneNumber, s.Address, s.BloodGroup, s.FatherName, s.MotherName,
            s.FatherPhone, s.MotherPhone, s.EmergencyContactName,
            s.EmergencyContactPhone, s.AadhaarNumber, s.Nationality, s.Religion,
-           s.MotherTongue, s.Category, s.EnrollmentNumber, s.RollNumber,
+           s.MotherTongue, s.Category, s.EnrollmentNumber,
            s.BoardId, b.UniversityName AS BoardName,
            s.SessionId, ses.Name AS SessionName,
            s.SchoolId, sch.Name AS SchoolName,
@@ -1587,7 +1646,7 @@ BEGIN
            sub.PhoneNumber, sub.Address, sub.BloodGroup, sub.FatherName, sub.MotherName,
            sub.FatherPhone, sub.MotherPhone, sub.EmergencyContactName,
            sub.EmergencyContactPhone, sub.AadhaarNumber, sub.Nationality, sub.Religion,
-           sub.MotherTongue, sub.Category, sub.EnrollmentNumber, sub.RollNumber,
+           sub.MotherTongue, sub.Category, sub.EnrollmentNumber,
            sub.BoardId, b.UniversityName AS BoardName,
            sub.SessionId, ses.Name AS SessionName,
            sub.SchoolId, sch.Name AS SchoolName,
@@ -1617,7 +1676,7 @@ BEGIN
            sub.PhoneNumber, sub.Address, sub.BloodGroup, sub.FatherName, sub.MotherName,
            sub.FatherPhone, sub.MotherPhone, sub.EmergencyContactName,
            sub.EmergencyContactPhone, sub.AadhaarNumber, sub.Nationality, sub.Religion,
-           sub.MotherTongue, sub.Category, sub.EnrollmentNumber, sub.RollNumber,
+           sub.MotherTongue, sub.Category, sub.EnrollmentNumber,
            sub.BoardId, b.UniversityName AS BoardName,
            sub.SessionId, ses.Name AS SessionName,
            sub.SchoolId, sch.Name AS SchoolName,
@@ -1647,7 +1706,7 @@ BEGIN
            sub.PhoneNumber, sub.Address, sub.BloodGroup, sub.FatherName, sub.MotherName,
            sub.FatherPhone, sub.MotherPhone, sub.EmergencyContactName,
            sub.EmergencyContactPhone, sub.AadhaarNumber, sub.Nationality, sub.Religion,
-           sub.MotherTongue, sub.Category, sub.EnrollmentNumber, sub.RollNumber,
+           sub.MotherTongue, sub.Category, sub.EnrollmentNumber,
            sub.BoardId, b.UniversityName AS BoardName,
            sub.SessionId, ses.Name AS SessionName,
            sub.SchoolId, sch.Name AS SchoolName,
@@ -1715,7 +1774,7 @@ CREATE PROCEDURE sp_StudentSubmission_Create(
     IN pAadhaarNumber VARCHAR(20), IN pNationality VARCHAR(50),
     IN pReligion VARCHAR(50), IN pMotherTongue VARCHAR(50),
     IN pCategory VARCHAR(20), IN pEnrollmentNumber VARCHAR(20),
-    IN pRollNumber VARCHAR(20), IN pBoardId INT, IN pSessionId INT,
+    IN pBoardId INT, IN pSessionId INT,
     IN pSchoolId INT, IN pClassId INT, IN pStreamId INT, IN pSpecializationId INT,
     IN pUsername VARCHAR(100)
 )
@@ -1724,14 +1783,14 @@ BEGIN
         FirstName, LastName, Gender, DateOfBirth, Email, PhoneNumber, Address,
         BloodGroup, FatherName, MotherName, FatherPhone, MotherPhone,
         EmergencyContactName, EmergencyContactPhone, AadhaarNumber, Nationality,
-        Religion, MotherTongue, Category, EnrollmentNumber, RollNumber,
+        Religion, MotherTongue, Category, EnrollmentNumber,
         BoardId, SessionId, SchoolId, ClassId, StreamId, SpecializationId,
         Username, IsActive, Status, CreatedAt
     ) VALUES (
         pFirstName, pLastName, pGender, pDateOfBirth, pEmail, pPhoneNumber, pAddress,
         pBloodGroup, pFatherName, pMotherName, pFatherPhone, pMotherPhone,
         pEmergencyContactName, pEmergencyContactPhone, pAadhaarNumber, pNationality,
-        pReligion, pMotherTongue, pCategory, pEnrollmentNumber, pRollNumber,
+        pReligion, pMotherTongue, pCategory, pEnrollmentNumber,
         pBoardId, pSessionId, pSchoolId, pClassId, pStreamId, pSpecializationId,
         pUsername, 1, 'Pending', UTC_TIMESTAMP(6)
     );
@@ -1740,7 +1799,7 @@ BEGIN
            sub.PhoneNumber, sub.Address, sub.BloodGroup, sub.FatherName, sub.MotherName,
            sub.FatherPhone, sub.MotherPhone, sub.EmergencyContactName,
            sub.EmergencyContactPhone, sub.AadhaarNumber, sub.Nationality, sub.Religion,
-           sub.MotherTongue, sub.Category, sub.EnrollmentNumber, sub.RollNumber,
+           sub.MotherTongue, sub.Category, sub.EnrollmentNumber,
            sub.BoardId, b.UniversityName AS BoardName,
            sub.SessionId, ses.Name AS SessionName,
            sub.SchoolId, sch.Name AS SchoolName,
@@ -1774,7 +1833,7 @@ CREATE PROCEDURE sp_StudentSubmission_Update(
     IN pAadhaarNumber VARCHAR(20), IN pNationality VARCHAR(50),
     IN pReligion VARCHAR(50), IN pMotherTongue VARCHAR(50),
     IN pCategory VARCHAR(20), IN pEnrollmentNumber VARCHAR(20),
-    IN pRollNumber VARCHAR(20), IN pBoardId INT, IN pSessionId INT,
+    IN pBoardId INT, IN pSessionId INT,
     IN pSchoolId INT, IN pClassId INT, IN pStreamId INT, IN pSpecializationId INT,
     IN pUpdatedBy VARCHAR(100)
 )
@@ -1790,7 +1849,7 @@ BEGIN
         AadhaarNumber = pAadhaarNumber, Nationality = pNationality,
         Religion = pReligion, MotherTongue = pMotherTongue,
         Category = pCategory, EnrollmentNumber = pEnrollmentNumber,
-        RollNumber = pRollNumber, BoardId = pBoardId, SessionId = pSessionId,
+        BoardId = pBoardId, SessionId = pSessionId,
         SchoolId = pSchoolId, ClassId = pClassId, StreamId = pStreamId,
         SpecializationId = pSpecializationId,
         UpdatedBy = pUpdatedBy, UpdatedDate = UTC_TIMESTAMP(6)
@@ -1800,7 +1859,7 @@ BEGIN
            sub.PhoneNumber, sub.Address, sub.BloodGroup, sub.FatherName, sub.MotherName,
            sub.FatherPhone, sub.MotherPhone, sub.EmergencyContactName,
            sub.EmergencyContactPhone, sub.AadhaarNumber, sub.Nationality, sub.Religion,
-           sub.MotherTongue, sub.Category, sub.EnrollmentNumber, sub.RollNumber,
+           sub.MotherTongue, sub.Category, sub.EnrollmentNumber,
            sub.BoardId, b.UniversityName AS BoardName,
            sub.SessionId, ses.Name AS SessionName,
            sub.SchoolId, sch.Name AS SchoolName,
@@ -1841,14 +1900,14 @@ BEGIN
             FirstName, LastName, Gender, DateOfBirth, Email, PhoneNumber, Address,
             BloodGroup, FatherName, MotherName, FatherPhone, MotherPhone,
             EmergencyContactName, EmergencyContactPhone, AadhaarNumber, Nationality,
-            Religion, MotherTongue, Category, EnrollmentNumber, RollNumber,
+            Religion, MotherTongue, Category, EnrollmentNumber,
             BoardId, SessionId, SchoolId, ClassId, StreamId, SpecializationId,
             IsActive, Status, InsertedBy, CreatedAt
         )
         SELECT FirstName, LastName, Gender, DateOfBirth, Email, PhoneNumber, Address,
                BloodGroup, FatherName, MotherName, FatherPhone, MotherPhone,
                EmergencyContactName, EmergencyContactPhone, AadhaarNumber, Nationality,
-               Religion, MotherTongue, Category, EnrollmentNumber, RollNumber,
+               Religion, MotherTongue, Category, EnrollmentNumber,
                BoardId, SessionId, SchoolId, ClassId, StreamId, SpecializationId,
                1, 'Approved', Username, UTC_TIMESTAMP(6)
         FROM StudentSubmissions
@@ -1867,7 +1926,7 @@ BEGIN
            sub.PhoneNumber, sub.Address, sub.BloodGroup, sub.FatherName, sub.MotherName,
            sub.FatherPhone, sub.MotherPhone, sub.EmergencyContactName,
            sub.EmergencyContactPhone, sub.AadhaarNumber, sub.Nationality, sub.Religion,
-           sub.MotherTongue, sub.Category, sub.EnrollmentNumber, sub.RollNumber,
+           sub.MotherTongue, sub.Category, sub.EnrollmentNumber,
            sub.BoardId, b.UniversityName AS BoardName,
            sub.SessionId, ses.Name AS SessionName,
            sub.SchoolId, sch.Name AS SchoolName,
@@ -1908,7 +1967,7 @@ BEGIN
            sub.PhoneNumber, sub.Address, sub.BloodGroup, sub.FatherName, sub.MotherName,
            sub.FatherPhone, sub.MotherPhone, sub.EmergencyContactName,
            sub.EmergencyContactPhone, sub.AadhaarNumber, sub.Nationality, sub.Religion,
-           sub.MotherTongue, sub.Category, sub.EnrollmentNumber, sub.RollNumber,
+           sub.MotherTongue, sub.Category, sub.EnrollmentNumber,
            sub.BoardId, b.UniversityName AS BoardName,
            sub.SessionId, ses.Name AS SessionName,
            sub.SchoolId, sch.Name AS SchoolName,
@@ -2004,7 +2063,7 @@ DROP PROCEDURE IF EXISTS sp_FullConfig_DuplicateCheck$$
 
 CREATE PROCEDURE sp_FullConfig_DuplicateCheck(
     IN pBoardId INT, IN pSessionId INT, IN pSchoolId INT, IN pClassId INT,
-    IN pExcludeId INT DEFAULT 0
+    IN pExcludeId INT
 )
 BEGIN
     SELECT COUNT(*)
@@ -2149,6 +2208,11 @@ DELIMITER ;
 
 
 -- ============================================================
--- DEFAULT ADMIN (username: admin, password: 123456789)
+-- DEFAULT ADMIN
+-- The application seeds the default 'admin' account itself on first
+-- run (see Program.cs) and prints a cryptographically random,
+-- one-time password to the console. No well-known credentials ship
+-- with this script.
 -- ============================================================
-INSERT INTO users (Username, PasswordHash, Role, CreatedAt) VALUES ('admin', '$2a$11$NqD5/RqJuEffgm2suztneOOl6Hna6gGINwU8E5P/No0rk00SQKxXS', 'Admin', UTC_TIMESTAMP(6));
+-- If you provision the database by hand and need the admin account,
+-- start the API once so it seeds 'admin' with a generated password.

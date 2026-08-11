@@ -1,0 +1,276 @@
+<div class="review">
+  <div class="review-header">
+    <div>
+      <p class="review-subtitle">Student Management System</p>
+      <h1>Application Review</h1>
+      <p class="review-lead">Review each registration on its own card and accept or reject it without a crowded table.</p>
+    </div>
+  </div>
+
+  <div class="success-box" *ngIf="actionMessage">
+    <i class="bi bi-check-circle-fill"></i>
+    {{ actionMessage }}
+  </div>
+
+  <div class="error-box" *ngIf="errorMessage">
+    <i class="bi bi-exclamation-triangle-fill"></i>
+    {{ errorMessage }}
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button
+      *ngFor="let t of tabs"
+      class="tab"
+      [class.tab--active]="activeTab === t.key"
+      type="button"
+      role="tab"
+      [attr.aria-selected]="activeTab === t.key"
+      (click)="setTab(t.key)"
+    >
+      <i [class]="'bi ' + t.icon"></i>
+      <span>{{ t.label }}</span>
+      <span class="tab-count" *ngIf="t.key !== 'All'">{{ countByStatus[t.key] }}</span>
+    </button>
+  </div>
+
+  <div class="filter-bar">
+    <div class="search-box">
+      <i class="bi bi-search"></i>
+      <input [(ngModel)]="searchText" type="search" placeholder="Search name, email, school..." />
+    </div>
+    <select [(ngModel)]="filterBoard" (change)="filterSchool = ''; filterClass = ''">
+      <option value="">All Boards</option>
+      <option *ngFor="let b of boardOptions" [value]="b">{{ b }}</option>
+    </select>
+    <select [(ngModel)]="filterSchool" (change)="filterClass = ''">
+      <option value="">All Schools</option>
+      <option *ngFor="let s of schoolOptions" [value]="s">{{ s }}</option>
+    </select>
+    <select [(ngModel)]="filterClass">
+      <option value="">All Classes</option>
+      <option *ngFor="let c of classOptions" [value]="c">{{ c }}</option>
+    </select>
+    <button class="clear-btn" type="button" (click)="clearFilters()">
+      <i class="bi bi-x-circle"></i> Clear
+    </button>
+  </div>
+
+  <div class="spinner" *ngIf="loading">
+    <i class="bi bi-arrow-repeat"></i> Loading applications...
+  </div>
+
+  <div class="card-grid" *ngIf="!loading">
+    <article class="card" *ngFor="let s of filtered">
+      <header class="card-head">
+        <div class="avatar" [style.background]="avatarColor(s)">{{ initials(s) }}</div>
+        <div class="card-head-main">
+          <h2>{{ s.firstName }} {{ s.lastName }}</h2>
+          <p>{{ s.email }}<span *ngIf="s.phoneNumber"> · {{ s.phoneNumber }}</span></p>
+        </div>
+        <span [class]="statusClass(s)">
+          <i [class.bi-hourglass-split]="s.status !== 'Approved' && s.status !== 'Rejected'"
+             [class.bi-check2-circle]="s.status === 'Approved'"
+             [class.bi-x-circle]="s.status === 'Rejected'"></i>
+          {{ s.status || 'Pending' }}
+        </span>
+      </header>
+
+      <div class="card-body">
+        <div class="chips">
+          <span class="chip"><i class="bi bi-mortarboard-fill"></i> {{ s.boardName }}</span>
+          <span class="chip"><i class="bi bi-building"></i> {{ s.schoolName }}</span>
+          <span class="chip"><i class="bi bi-journal-bookmark"></i> {{ s.className }}{{ s.classSection ? ' - ' + s.classSection : '' }}</span>
+          <span class="chip" *ngIf="s.streamName"><i class="bi bi-diagram-3"></i> {{ s.streamName }}</span>
+          <span class="chip" *ngIf="s.specializationName"><i class="bi bi-bookmark-star"></i> {{ s.specializationName }}</span>
+        </div>
+
+        <div class="meta-grid">
+          <div class="meta-item">
+            <span class="meta-label">Date of Birth</span>
+            <span class="meta-value">{{ s.dateOfBirth | date:'dd MMM yyyy' }}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Gender</span>
+            <span class="meta-value">{{ s.gender }}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Session</span>
+            <span class="meta-value">{{ s.sessionName }}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Username</span>
+            <span class="meta-value mono">{{ s.username }}</span>
+          </div>
+        </div>
+
+        <div class="parents">
+          <div class="parent">
+            <i class="bi bi-person-badge-fill"></i>
+            <div>
+              <strong>{{ s.fatherName }}</strong>
+              <span class="mono">{{ s.fatherPhone }}</span>
+            </div>
+          </div>
+          <div class="parent">
+            <i class="bi bi-person-badge"></i>
+            <div>
+              <strong>{{ s.motherName }}</strong>
+              <span class="mono">{{ s.motherPhone }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="review-note" *ngIf="s.status === 'Rejected' && s.reviewNote">
+          <i class="bi bi-chat-left-text-fill"></i>
+          <div>
+            <span class="review-note-label">Review note</span>
+            <p>{{ s.reviewNote }}</p>
+          </div>
+        </div>
+      </div>
+
+      <footer class="card-foot">
+        <span class="reviewed-by" *ngIf="s.status !== 'Pending'">
+          Reviewed by <strong>{{ reviewedLabel(s) }}</strong>
+        </span>
+        <div class="card-actions">
+          <button class="btn btn-ghost" type="button" (click)="viewDetails(s)">
+            <i class="bi bi-eye-fill"></i> Details
+          </button>
+          <button class="btn btn-approve" *ngIf="s.status === 'Pending'" type="button" (click)="approveSubmission(s)">
+            <i class="bi bi-check2-circle"></i> Accept
+          </button>
+          <button class="btn btn-reject" *ngIf="s.status === 'Pending'" type="button" (click)="openRejectModal(s)">
+            <i class="bi bi-x-circle"></i> Reject
+          </button>
+        </div>
+      </footer>
+    </article>
+  </div>
+
+  <div class="empty-state" *ngIf="!loading && !filtered.length">
+    <div class="empty-icon"><i class="bi bi-inbox"></i></div>
+    <h2>No Applications</h2>
+    <p>No applications match the current view or filters.</p>
+  </div>
+</div>
+
+<!-- Details modal -->
+<div class="modal-overlay" *ngIf="viewingSubmission" (click)="closeDetails()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <button class="modal-close" type="button" (click)="closeDetails()" aria-label="Close details"><i class="bi bi-x-lg"></i></button>
+
+    <div class="modal-hero" [style.background]="avatarColor(viewingSubmission)">
+      <div class="modal-avatar">{{ initials(viewingSubmission) }}</div>
+      <div class="modal-hero-text">
+        <h2>{{ viewingSubmission.firstName }} {{ viewingSubmission.lastName }}</h2>
+        <p>{{ viewingSubmission.email }}<span *ngIf="viewingSubmission.phoneNumber"> · {{ viewingSubmission.phoneNumber }}</span></p>
+        <span [class]="statusClass(viewingSubmission)">
+          <i [class.bi-hourglass-split]="viewingSubmission.status !== 'Approved' && viewingSubmission.status !== 'Rejected'"
+             [class.bi-check2-circle]="viewingSubmission.status === 'Approved'"
+             [class.bi-x-circle]="viewingSubmission.status === 'Rejected'"></i>
+          {{ viewingSubmission.status || 'Pending' }}
+        </span>
+      </div>
+    </div>
+
+    <div class="modal-body">
+      <div class="detail-section" *ngIf="viewingSubmission.status === 'Rejected' && viewingSubmission.reviewNote">
+        <h3><i class="bi bi-chat-left-text-fill"></i> Review Note</h3>
+        <p class="review-note-block">{{ viewingSubmission.reviewNote }}</p>
+      </div>
+
+      <div class="detail-section">
+        <h3><i class="bi bi-person-fill"></i> Personal Details</h3>
+        <div class="detail-grid">
+          <div class="detail-item"><span class="detail-label">First Name</span><span class="detail-value">{{ viewingSubmission.firstName }}</span></div>
+          <div class="detail-item"><span class="detail-label">Last Name</span><span class="detail-value">{{ viewingSubmission.lastName }}</span></div>
+          <div class="detail-item"><span class="detail-label">Gender</span><span class="detail-value">{{ viewingSubmission.gender }}</span></div>
+          <div class="detail-item"><span class="detail-label">Date of Birth</span><span class="detail-value">{{ viewingSubmission.dateOfBirth | date:'dd MMM yyyy' }}</span></div>
+          <div class="detail-item"><span class="detail-label">Email</span><span class="detail-value">{{ viewingSubmission.email }}</span></div>
+          <div class="detail-item"><span class="detail-label">Phone</span><span class="detail-value">{{ viewingSubmission.phoneNumber || 'N/A' }}</span></div>
+          <div class="detail-item detail-item--full"><span class="detail-label">Address</span><span class="detail-value">{{ viewingSubmission.address }}</span></div>
+          <div class="detail-item"><span class="detail-label">Blood Group</span><span class="detail-value">{{ viewingSubmission.bloodGroup || 'N/A' }}</span></div>
+          <div class="detail-item"><span class="detail-label">Aadhaar Number</span><span class="detail-value">{{ viewingSubmission.aadhaarNumber || 'N/A' }}</span></div>
+          <div class="detail-item"><span class="detail-label">Nationality</span><span class="detail-value">{{ viewingSubmission.nationality || 'N/A' }}</span></div>
+          <div class="detail-item"><span class="detail-label">Religion</span><span class="detail-value">{{ viewingSubmission.religion || 'N/A' }}</span></div>
+          <div class="detail-item"><span class="detail-label">Mother Tongue</span><span class="detail-value">{{ viewingSubmission.motherTongue || 'N/A' }}</span></div>
+          <div class="detail-item"><span class="detail-label">Category</span><span class="detail-value">{{ viewingSubmission.category || 'N/A' }}</span></div>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <h3><i class="bi bi-people-fill"></i> Parent Details</h3>
+        <div class="detail-grid">
+          <div class="detail-item"><span class="detail-label">Father's Name</span><span class="detail-value">{{ viewingSubmission.fatherName }}</span></div>
+          <div class="detail-item"><span class="detail-label">Father's Phone</span><span class="detail-value">{{ viewingSubmission.fatherPhone }}</span></div>
+          <div class="detail-item"><span class="detail-label">Mother's Name</span><span class="detail-value">{{ viewingSubmission.motherName }}</span></div>
+          <div class="detail-item"><span class="detail-label">Mother's Phone</span><span class="detail-value">{{ viewingSubmission.motherPhone }}</span></div>
+          <div class="detail-item"><span class="detail-label">Emergency Contact</span><span class="detail-value">{{ viewingSubmission.emergencyContactName || 'N/A' }}<ng-container *ngIf="viewingSubmission.emergencyContactPhone"> ({{ viewingSubmission.emergencyContactPhone }})</ng-container></span></div>
+          <div class="detail-item"><span class="detail-label">Enrollment Number</span><span class="detail-value">{{ viewingSubmission.enrollmentNumber || 'N/A' }}</span></div>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <h3><i class="bi bi-building-fill"></i> Academic Information</h3>
+        <div class="detail-grid">
+          <div class="detail-item"><span class="detail-label">Board</span><span class="detail-value">{{ viewingSubmission.boardName }}</span></div>
+          <div class="detail-item"><span class="detail-label">Session</span><span class="detail-value">{{ viewingSubmission.sessionName }}</span></div>
+          <div class="detail-item"><span class="detail-label">School</span><span class="detail-value">{{ viewingSubmission.schoolName }}</span></div>
+          <div class="detail-item"><span class="detail-label">Class</span><span class="detail-value">{{ viewingSubmission.className }}{{ viewingSubmission.classSection ? ' - ' + viewingSubmission.classSection : '' }}</span></div>
+          <div class="detail-item"><span class="detail-label">Stream</span><span class="detail-value">{{ viewingSubmission.streamName || '—' }}</span></div>
+          <div class="detail-item"><span class="detail-label">Specialization</span><span class="detail-value">{{ viewingSubmission.specializationName || '—' }}</span></div>
+          <div class="detail-item"><span class="detail-label">Username</span><span class="detail-value mono">{{ viewingSubmission.username }}</span></div>
+        </div>
+      </div>
+
+      <div class="modal-actions" *ngIf="viewingSubmission.status === 'Pending'">
+        <button class="btn btn-approve" type="button" (click)="approveSubmission(viewingSubmission)">
+          <i class="bi bi-check2-circle"></i> Accept
+        </button>
+        <button class="btn btn-reject" type="button" (click)="openRejectModal(viewingSubmission)">
+          <i class="bi bi-x-circle"></i> Reject
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Reject modal -->
+<div class="modal-overlay" *ngIf="rejectingSubmission" (click)="closeRejectModal()">
+  <div class="modal-content modal-content--sm" (click)="$event.stopPropagation()">
+    <button class="modal-close" type="button" (click)="closeRejectModal()" aria-label="Close reject form"><i class="bi bi-x-lg"></i></button>
+
+    <div class="modal-hero modal-hero--reject">
+      <div class="modal-avatar">{{ initials(rejectingSubmission) }}</div>
+      <div class="modal-hero-text">
+        <h2>Reject {{ rejectingSubmission.firstName }} {{ rejectingSubmission.lastName }}?</h2>
+        <p>The student will be notified that their form was rejected.</p>
+      </div>
+    </div>
+
+    <div class="modal-body">
+      <div class="error-box" *ngIf="errorMessage">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        {{ errorMessage }}
+      </div>
+      <label class="reject-note-label">
+        <span>Note to the student <small>(optional)</small></span>
+        <textarea
+          [(ngModel)]="rejectNote"
+          rows="4"
+          maxlength="500"
+          placeholder="e.g. Incomplete documents — please upload your Aadhaar card and re-submit."
+        ></textarea>
+        <small class="reject-note-counter">{{ rejectNote.length }}/500</small>
+      </label>
+      <div class="reject-actions">
+        <button class="btn btn-ghost" type="button" (click)="closeRejectModal()">Cancel</button>
+        <button class="btn btn-reject" type="button" [disabled]="submittingReview" (click)="confirmReject()">
+          <i class="bi bi-x-circle"></i>
+          {{ submittingReview ? 'Rejecting...' : 'Reject Registration' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

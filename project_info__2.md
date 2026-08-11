@@ -14,7 +14,7 @@ The codebase is a **work-in-progress ERP** — the repository name (`School_ERP`
   - Frontend: Angular 17 (standalone components, no NgModules), RxJS, AG-Grid Community (v32) for data tables, Bootstrap Icons, jsPDF/jspdf-autotable + xlsx for report export, Reactive Forms.
   - Database: MySQL (`company_db`).
 - **Data access quirk**: EF Core is *only* used for `Database.EnsureCreated()` and seeding the admin user at startup. All *runtime* data access goes through **Dapper + stored procedures** referenced as string constants in `backend/Data/StoredProcedures.cs`.
-- **Auth model**: JWT (HS256, 8-hour expiry) with the `storage key` `auth_user` in `localStorage`. Roles are `Admin` and `User` (regular students).
+- **Auth model**: JWT (HS256, 8-hour expiry) is delivered as an **HttpOnly cookie** (`auth_token`) so the token never enters client-side JS. The non-sensitive profile (`username`, `role`, `profilePicture`) is cached in `localStorage` under the `auth_user` key. Roles are `Admin` and `User` (regular students).
 - **Entry points**:
   - Frontend: `frontend/src/main.ts` → `bootstrapApplication(AppComponent, appConfig)` → `AppComponent` renders the app shell (sidebar + topbar) or auth-only layout; routes in `app.routes.ts` (all lazy-loaded).
   - Backend: `backend/Program.cs` builds the app, runs a large inline bootstrap block that creates tables/migrations, then maps controllers.
@@ -49,7 +49,7 @@ Guest_Form_Main/
             ├── app.config.ts         — providers: router + HttpClient with authInterceptor
             ├── app.routes.ts         — lazy routes with authGuard/adminGuard
             ├── guards/               — auth.guard.ts, admin.guard.ts
-            ├── interceptors/auth.interceptor.ts — attaches JWT, handles 401
+            ├── interceptors/auth.interceptor.ts — sends the HttpOnly auth cookie, handles 401
             ├── models/               — TS interfaces mirroring backend DTOs
             ├── services/             — one HTTP service per backend controller
             └── components/
@@ -90,8 +90,8 @@ Guest_Form_Main/
 
 ### AuthService
 - **File**: `frontend/src/app/services/auth.service.ts`
-- **Responsibility**: Holds the authenticated user in a `BehaviorSubject<AuthResponse | null>` (hydrated from `localStorage` key `auth_user` on construction); exposes login/register/change-password/logout; provides `isLoggedIn()`, `isAdmin()`, `getToken()`.
-- **Interface**: `login(credentials)`, `register(payload)`, `changePassword(current, new)`, `logout()`, `getCaptcha()`, `currentUser$`, `currentUser`, `getToken()`, `isLoggedIn()`, `isAdmin()`.
+- **Responsibility**: Holds the authenticated user in a `BehaviorSubject<AuthResponse | null>` (hydrated from `localStorage` key `auth_user` on construction); exposes login/register/change-password/logout; provides `isLoggedIn()`, `isAdmin()`. The JWT itself lives in an HttpOnly cookie and is never touched by the service.
+- **Interface**: `login(credentials)`, `register(payload)`, `changePassword(current, new)`, `logout()`, `getCaptcha()`, `currentUser$`, `currentUser`, `isLoggedIn()`, `isAdmin()`.
 - **Lifecycle**: `providedIn: 'root'` singleton; state survives page reload via localStorage.
 - **Used by**: `AppComponent`, `LoginComponent`, `SignupComponent`, `StudentFormComponent`, `StudentDashboardComponent`, both guards, the interceptor.
 
@@ -129,9 +129,9 @@ Guest_Form_Main/
 ### 1. Login flow
 1. User opens app → `AppComponent.showShell()` returns false on `/login` → auth-only template renders.
 2. `LoginComponent` renders `CaptchaComponent`; CAPTCHA fetches `GET /api/Auth/captcha` → SkiaSharp image + `captchaId` (cached 5 min in memory).
-3. Submit → `AuthService.login()` → `POST /api/Auth/login` → backend validates CAPTCHA (skipped in dev), BCrypt-verifies password, mints JWT → frontend stores `{token, username, role}` in localStorage under `auth_user` and updates `currentUserSubject`.
+3. Submit → `AuthService.login()` → `POST /api/Auth/login` → backend validates CAPTCHA, BCrypt-verifies password, mints JWT and sets it as the HttpOnly `auth_token` cookie → frontend caches the non-sensitive profile `{username, role}` in localStorage under `auth_user` and updates `currentUserSubject`.
 4. Redirect: admin → `/dashboard`, regular user → `/submit`.
-5. Every subsequent HTTP request passes through `authInterceptor`, which clones the request with `Authorization: Bearer <token>` and force-logs-out + redirects on any 401 **except** `/Auth/` endpoints (where a 401 just means wrong credentials).
+5. Every subsequent HTTP request passes through `authInterceptor`, which enables `withCredentials` so the browser sends the auth cookie, and force-logs-out + redirects on any 401 **except** the public endpoints `/Auth/login`, `/Auth/register`, `/Auth/captcha` (where a 401 just means wrong credentials).
 
 ### 2. Student registration flow
 1. `StudentFormComponent.ngOnInit()` → `loadBoards()` (fills first dropdown) + `loadStudents()`.
@@ -160,15 +160,17 @@ Guest_Form_Main/
    - The stored procedures must exist in the database for the app to work — they're **not created by `EnsureCreated()`**. They come from `backend/Data/full_database.sql` / `seed_data.sql` or manual provisioning. **If a fresh DB is created and the SPs aren't loaded, every endpoint 500s.**
    - Schema evolution is handled by hand-written idempotent `IF NOT EXISTS` checks in `Program.cs` (e.g., migrating `Classes.Name` → `Classes.Class`, adding `Streams.Acronym`, `Specializations.StreamId`, `Students.Status`). No EF migrations are used.
 
-2. **Dev-mode CAPTCHA bypass.** `AuthController.IsCaptchaValid()` returns `true` in `IHostEnvironment.IsDevelopment()`. So in local dev, login/register work with any CAPTCHA answer — but the client still requires `captchaId` + non-empty `captchaAnswer` to be present in the form.
+2. **CAPTCHA is enforced everywhere.** Older revisions skipped CAPTCHA verification in Development; that bypass has been removed — `IsCaptchaValid()` always checks the single-use, 5-minute `IMemoryCache` entry. The brute-forceable auth endpoints are additionally rate-limited to 10 requests/minute/IP (429 when exceeded).
 
-3. **Default admin is seeded with a known password.** `Program.cs` seeds `admin` / `123456789` if the users table is empty. The README tells you to change it immediately. This is a latent security footgun if deployed without change.
+3. **Default admin is seeded with a random one-time password.** `Program.cs` seeds `admin` with a cryptographically random password (printed to the console) when the users table is empty. No well-known credentials ship with the codebase; the README still recommends changing it after first login.
 
 4. **Two theming systems exist simultaneously.** `AppComponent` has its own `--paper/--ink/--brass` CSS variable set plus a `dark-mode` body class toggle, while `styles.css` defines a second `:root` variable set (also `--paper`, `--brass`, etc.) with its own `body.dark-mode` overrides. Both live together; the global `styles.css` overrides component styles with `!important` in dark mode. This is duplicated/overlapping design — changes to one theme system may not propagate to the other.
 
-5. **Placeholder config in `appsettings.json`.** The committed `appsettings.json` has `Pwd=CHANGE_ME` and a placeholder JWT key. Real values belong in `appsettings.Development.json` (gitignored). Running the backend as-is against the committed template fails (bad password / weak secret).
+5. **Placeholder config in `appsettings.json`.** The committed `appsettings.json` has `Pwd=CHANGE_ME` and a placeholder JWT key. Real values belong in `appsettings.Development.json` (gitignored) or environment variables. `Program.cs` **fails fast** on startup if the JWT key is missing/short or the connection string still has `CHANGE_ME`, so a misconfigured server never starts.
 
-6. **Production API URL is a hard-coded ngrok placeholder.** `frontend/src/environments/environment.prod.ts` points at `https://YOUR-NGROK-SUBDOMAIN.ngrok-free.app/api` — a build will hit a dead URL unless this is replaced; the README also flags the ngrok free-tier interstitial that breaks HttpClient unless the `ngrok-skip-browser-warning: true` header is added (the current `auth.interceptor.ts` does **not** add it).
+6. **Production API URL is relative by default.** `frontend/src/environments/environment.prod.ts` uses `apiUrl: '/api'` so the SPA and API are served from the same origin (reverse proxy). If the backend is tunneled (e.g. ngrok), replace it with the tunnel origin. The auth interceptor already sends the `ngrok-skip-browser-warning: true` header required by ngrok's free-tier interstitial.
+
+6b. **Auth is cookie-first.** Authentication happens via the HttpOnly `auth_token` cookie, so the browser attaches credentials automatically (`withCredentials`). Swagger/the API can still authenticate with the `Authorization: Bearer` header because the JWT middleware checks the cookie as a fallback. Logout must call `POST /api/Auth/logout` to expire the cookie (an HttpOnly cookie cannot be cleared from JS).
 
 7. **Soft deletes everywhere.** Every resource (boards, schools, classes, sessions, streams, specializations, students, full configurations) has `IsActive`, `DeletedBy`, `DeletedDate` columns. Deletes are "soft" — a `NoContent()` response after `sp_*_Delete`, but the row stays. Master-data deletes are blocked by referential-child counts (409 with a friendly message).
 
@@ -186,7 +188,7 @@ Guest_Form_Main/
 
 14. **`change-password` is a separate authorised endpoint** (`POST /api/Auth/change-password`), invoked from the AppComponent's modal. It verifies the current password via BCrypt before writing the new hash. Unlike login/register it has no CAPTCHA. Password change does **not** invalidate existing JWTs.
 
-15. **`authInterceptor` 401 handling has an interesting edge.** It skips auto-logout for URLs containing `/Auth/` so that a failed login doesn't nuke the session. But note `change-password` also lives under `/Auth/` — so a 401 from `change-password` (e.g., "Unable to identify the current user") will **not** trigger a redirect to `/login`. Worth remembering if you add other authorised endpoints under `/Auth/`.
+15. **`authInterceptor` only exempts genuinely public endpoints from the 401 auto-logout.** It skips auto-logout only for URLs containing `/Auth/login`, `/Auth/register`, or `/Auth/captcha`. Protected endpoints under `/Auth/` (`change-password`, `username`, `profile-picture`) still trigger logout + redirect on a 401 because there a 401 means an expired/invalid session.
 
 ## Module Reference (Frontend)
 
@@ -206,7 +208,7 @@ Guest_Form_Main/
 | `frontend/src/app/services/full-configuration.service.ts` | Full-config snapshot CRUD |
 | `frontend/src/app/guards/auth.guard.ts` | Redirects to `/login` if unauthenticated |
 | `frontend/src/app/guards/admin.guard.ts` | Redirects non-admins to `/submit`, anonymous to `/login` |
-| `frontend/src/app/interceptors/auth.interceptor.ts` | Attaches Bearer token; handles 401 auto-logout (except `/Auth/`) |
+| `frontend/src/app/interceptors/auth.interceptor.ts` | Sends the HttpOnly auth cookie (`withCredentials`); handles 401 auto-logout (except public auth endpoints) |
 | `frontend/src/app/components/captcha.component.ts` | CAPTCHA image + answer input (two-way via `valueChange`) |
 | `frontend/src/app/components/login/login.component.ts` | Login form + CAPTCHA + redirect by role |
 | `frontend/src/app/components/signup/signup.component.ts` | Self-registration as `User` role |

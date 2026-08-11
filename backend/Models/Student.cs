@@ -67,9 +67,6 @@ namespace GuestApi.Models
         [MaxLength(20)]
         public string? EnrollmentNumber { get; set; }
 
-        [MaxLength(20)]
-        public string? RollNumber { get; set; }
-
         public int BoardId { get; set; }
 
         public int SessionId { get; set; }

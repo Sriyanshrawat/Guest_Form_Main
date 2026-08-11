@@ -50,10 +50,27 @@ namespace GuestApi.DTOs
 
     public class AuthResponseDto
     {
-        public string Token { get; set; } = string.Empty;
+        // NOTE: the JWT is deliberately not returned in the body. The server
+        // sets it as an HttpOnly cookie instead, keeping it out of JS scope.
 
         public string Username { get; set; } = string.Empty;
 
         public string Role { get; set; } = string.Empty;
+
+        public string? ProfilePicture { get; set; }
+    }
+
+    public class UpdateProfilePictureDto
+    {
+        public string? ProfilePicture { get; set; }
+    }
+
+    public class UpdateUsernameDto
+    {
+        [Required, MinLength(3), MaxLength(50)]
+        public string NewUsername { get; set; } = string.Empty;
+
+        [Required]
+        public string CurrentPassword { get; set; } = string.Empty;
     }
 }

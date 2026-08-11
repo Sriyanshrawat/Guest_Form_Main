@@ -8,6 +8,8 @@ namespace GuestApi.Data
         public const string Users_UsernameExists = "sp_Users_UsernameExists";
         public const string Users_Create = "sp_Users_Create";
         public const string Users_UpdatePassword = "sp_Users_UpdatePassword";
+        public const string Users_UpdateProfilePicture = "sp_Users_UpdateProfilePicture";
+        public const string Users_UpdateUsername = "sp_Users_UpdateUsername";
 
         // SCHOOL BOARDS
         public const string SchoolBoard_GetAll = "sp_SchoolBoard_GetAll";
@@ -20,7 +22,7 @@ namespace GuestApi.Data
 
         // SCHOOLS
         public const string School_GetAll = "sp_School_GetAll";
-        public const string School_BoardExists = "sp_School_BoardExists";
+        public const string SchoolBoard_ActiveExists = "sp_SchoolBoard_ActiveExists";
         public const string School_Exists = "sp_School_Exists";
         public const string School_GetById = "sp_School_GetById";
         public const string Schools_ActiveClassesCount = "sp_Schools_ActiveClassesCount";

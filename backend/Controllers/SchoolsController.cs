@@ -47,7 +47,7 @@ namespace GuestApi.Controllers
             using var conn = _db.CreateConnection();
 
             var boardExists = await conn.QuerySingleAsync<int>(
-                StoredProcedures.School_BoardExists,
+                StoredProcedures.SchoolBoard_ActiveExists,
                 new { pBoardId = dto.SchoolBoardId },
                 commandType: CommandType.StoredProcedure);
             if (boardExists == 0) return BadRequest(new { message = "Select a valid school board." });
@@ -81,7 +81,7 @@ namespace GuestApi.Controllers
             if (school == null || school.DeletedDate.HasValue) return NotFound(new { message = "School not found." });
 
             var boardExists = await conn.QuerySingleAsync<int>(
-                StoredProcedures.School_BoardExists,
+                StoredProcedures.SchoolBoard_ActiveExists,
                 new { pBoardId = dto.SchoolBoardId },
                 commandType: CommandType.StoredProcedure);
             if (boardExists == 0) return BadRequest(new { message = "Select a valid school board." });

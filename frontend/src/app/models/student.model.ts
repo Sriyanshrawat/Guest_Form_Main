@@ -20,7 +20,6 @@ export interface Student {
   motherTongue?: string;
   category?: string;
   enrollmentNumber?: string;
-  rollNumber?: string;
   boardId: number;
   boardName?: string;
   sessionId: number;

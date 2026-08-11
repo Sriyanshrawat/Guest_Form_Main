@@ -15,6 +15,8 @@ namespace GuestApi.Models
         [Required, MaxLength(20)]
         public string Role { get; set; } = "User";
 
+        public string? ProfilePicture { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

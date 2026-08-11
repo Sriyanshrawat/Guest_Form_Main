@@ -32,17 +32,38 @@ gate on login/signup.
 
 On first run, the app automatically creates the database and tables
 (`Database.EnsureCreated()` in `Program.cs`) and seeds a default admin
-user:
+user with a **randomly generated, one-time password** that is printed to
+the console:
 
-- Username: `admin`
-- Password: `123456789`
+```
+A default 'admin' account was created with a generated password.
+      username: admin
+      password: <random>
+```
 
-**Change this password immediately after your first login.**
+A known password is never shipped with the codebase. Log in with the
+printed password and change it immediately from the profile menu.
 
 If you already have an existing database from an earlier version of the
 app, `Program.cs` also runs a set of defensive `ALTER TABLE` checks on
 startup to bring older schemas up to date (added columns, renamed
-columns, etc.) without needing a full migration run.
+columns, etc.) without needing a full migration run. It also **loads the
+stored procedures** from `Data/full_database.sql` automatically whenever
+any are missing, so a freshly created database works without manually
+running the script.
+
+## Authentication
+
+Sessions use JWT bearer tokens that the server sets as an **HttpOnly
+cookie** (`auth_token`). The cookie keeps the token out of JavaScript
+scope (no more localStorage), and the Angular app sends it back
+automatically. Swagger's "Authorize" button still works via the
+`Authorization: Bearer` header.
+
+The brute-forceable auth endpoints (`/api/auth/captcha`,
+`/api/auth/login`, `/api/auth/register`) are rate-limited to 10 requests
+per minute per client IP and return `429 Too Many Requests` when
+exceeded.
 
 Swagger UI opens automatically at `http://localhost:5059/swagger` (per
 `Properties/launchSettings.json`). The Angular app's `environment.ts`
@@ -50,10 +71,11 @@ already points at this same port.
 
 ## Database scripts
 
-`../seed.sql` (repo root) is the canonical, up-to-date schema script —
-useful if you want to provision the database by hand instead of relying
-on `EnsureCreated()`, or want to inspect/seed data for local testing. Run
-it directly in MySQL Workbench or via the `mysql` CLI.
+`Data/full_database.sql` (this folder) is the canonical schema script —
+it creates the tables and all stored procedures. `Data/seed_data.sql`
+contains sample data. Run them in MySQL Workbench or via the `mysql`
+CLI if you prefer to provision by hand instead of relying on
+`EnsureCreated()`.
 
 ## Endpoints (high level)
 

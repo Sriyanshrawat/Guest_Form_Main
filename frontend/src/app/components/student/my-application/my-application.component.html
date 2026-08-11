@@ -1,0 +1,94 @@
+<section class="my-application-page">
+  <div class="page-header">
+    <div>
+      <p class="eyebrow">Student Portal</p>
+      <h1>My Application</h1>
+      <p>Review the application you submitted and check the current status.</p>
+    </div>
+    <a
+      routerLink="/submit"
+      class="btn btn-primary"
+      *ngIf="submission && submission.status === 'Pending'"
+      title="Edit your pending application"
+    >
+      <i class="bi bi-pencil"></i>
+      Edit Application
+    </a>
+  </div>
+
+  <div class="status-panel" *ngIf="submission">
+    <div class="status-item">
+      <span>Application No.</span>
+      <strong>{{ applicationNumber }}</strong>
+    </div>
+    <div class="status-item">
+      <span>Status</span>
+      <strong class="status-badge {{ statusClass() }}">{{ statusLabel }}</strong>
+    </div>
+    <div class="status-item">
+      <span>Submitted</span>
+      <strong>{{ submissionDate }}</strong>
+    </div>
+  </div>
+
+  <div class="spinner" *ngIf="loading">
+    <i class="bi bi-arrow-repeat"></i> Loading application...
+  </div>
+
+  <div class="error-box" *ngIf="!loading && errorMessage">
+    <i class="bi bi-exclamation-triangle-fill"></i> {{ errorMessage }}
+  </div>
+
+  <ng-container *ngIf="!loading && submission">
+    <div class="application-grid">
+      <div class="application-card">
+        <h2><i class="bi bi-person-fill"></i> Personal Information</h2>
+        <dl>
+          <dt>Student Name</dt><dd>{{ submission.firstName }} {{ submission.lastName }}</dd>
+          <dt>Gender</dt><dd>{{ submission.gender }}</dd>
+          <dt>Date of Birth</dt><dd>{{ submission.dateOfBirth | date:'dd MMM yyyy' }}</dd>
+          <dt>Email</dt><dd>{{ submission.email }}</dd>
+          <dt>Phone</dt><dd>{{ submission.phoneNumber || '—' }}</dd>
+          <dt>Address</dt><dd>{{ submission.address }}</dd>
+          <dt>Blood Group</dt><dd>{{ submission.bloodGroup || '—' }}</dd>
+        </dl>
+      </div>
+
+      <div class="application-card">
+        <h2><i class="bi bi-people-fill"></i> Parent &amp; Emergency Contacts</h2>
+        <dl>
+          <dt>Father's Name</dt><dd>{{ submission.fatherName }}</dd>
+          <dt>Mother's Name</dt><dd>{{ submission.motherName }}</dd>
+          <dt>Father's Phone</dt><dd>{{ submission.fatherPhone }}</dd>
+          <dt>Mother's Phone</dt><dd>{{ submission.motherPhone }}</dd>
+          <dt>Emergency Contact</dt><dd>{{ submission.emergencyContactName || '—' }}{{ submission.emergencyContactPhone ? ' (' + submission.emergencyContactPhone + ')' : '' }}</dd>
+          <dt>Enrollment No.</dt><dd>{{ submission.enrollmentNumber || '—' }}</dd>
+          <dt>Aadhaar No.</dt><dd>{{ submission.aadhaarNumber || '—' }}</dd>
+        </dl>
+      </div>
+
+      <div class="application-card">
+        <h2><i class="bi bi-mortarboard-fill"></i> Academic Information</h2>
+        <dl>
+          <dt>Board</dt><dd>{{ submission.boardName || '—' }}</dd>
+          <dt>Session</dt><dd>{{ submission.sessionName || '—' }}</dd>
+          <dt>School</dt><dd>{{ submission.schoolName || '—' }}</dd>
+          <dt>Class</dt><dd>{{ submission.className }}{{ submission.classSection ? ' · ' + submission.classSection : '' }}</dd>
+          <dt>Stream</dt><dd>{{ submission.streamName || '—' }}</dd>
+          <dt>Specialization</dt><dd>{{ submission.specializationName || '—' }}</dd>
+          <dt>Nationality</dt><dd>{{ submission.nationality || '—' }}</dd>
+          <dt>Religion</dt><dd>{{ submission.religion || '—' }}</dd>
+          <dt>Mother Tongue</dt><dd>{{ submission.motherTongue || '—' }}</dd>
+          <dt>Category</dt><dd>{{ submission.category || '—' }}</dd>
+        </dl>
+      </div>
+    </div>
+  </ng-container>
+
+  <div class="empty-state" *ngIf="!loading && !submission && !errorMessage">
+    <div class="empty-icon"><i class="bi bi-inbox"></i></div>
+    <h2>No application submitted yet</h2>
+    <p>Fill the registration form first, then return here to review your application.</p>
+    <a routerLink="/submit" class="btn btn-primary">Start Registration</a>
+  </div>
+</section>

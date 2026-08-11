@@ -1,0 +1,90 @@
+<section class="student-dashboard">
+  <header class="sd-head">
+    <div>
+      <p class="sd-eyebrow">STUDENT PORTAL</p>
+      <h1 class="sd-greeting">
+        {{ greeting }}<ng-container *ngIf="user$ | async as user">, {{ user.username }}</ng-container>
+      </h1>
+      <p class="sd-sub">Welcome back to Student Portal</p>
+    </div>
+  </header>
+
+
+  <div *ngIf="loading" class="sd-loading">
+    <i class="bi bi-arrow-repeat sd-spinning"></i> Loading...
+  </div>
+
+  <div *ngIf="!loading && loadError" class="sd-error" role="alert">
+    <p>Unable to load your registration details.</p>
+    <button type="button" (click)="loadMyStudent()">Retry</button>
+  </div>
+
+  <ng-container *ngIf="!loading && !loadError">
+    <div class="sd-cards">
+      <div class="sd-card">
+        <div class="sd-card-kicker">Registration</div>
+        <div class="sd-card-value" [class.sd-card-value--approved]="statusTone === 'approved'"
+             [class.sd-card-value--rejected]="statusTone === 'rejected'"
+             [class.sd-card-value--pending]="statusTone === 'pending'">
+          {{ registrationStatus }}
+        </div>
+      </div>
+
+      <div class="sd-card">
+        <div class="sd-card-kicker">Application No.</div>
+        <div class="sd-card-value">{{ applicationNo }}</div>
+      </div>
+
+      <div class="sd-card">
+        <div class="sd-card-kicker">Profile</div>
+        <div class="sd-card-value">{{ profilePct }}%</div>
+      </div>
+    </div>
+
+    <div class="sd-details" *ngIf="student as s">
+      <div class="sd-detail">
+        <span>Board</span><strong>{{ s.boardName || '—' }}</strong>
+      </div>
+      <div class="sd-detail">
+        <span>Session</span><strong>{{ s.sessionName || '—' }}</strong>
+      </div>
+      <div class="sd-detail">
+        <span>School</span><strong>{{ s.schoolName || '—' }}</strong>
+      </div>
+      <div class="sd-detail">
+        <span>Class</span>
+        <strong>{{
+          s.className
+            ? s.className + (s.classSection ? ' · ' + s.classSection : '')
+            : '—'
+        }}</strong>
+      </div>
+      <div class="sd-detail">
+        <span>Stream</span><strong>{{ s.streamName || '—' }}</strong>
+      </div>
+    </div>
+
+    <div class="sd-notice" *ngIf="!student">
+      <p>You haven't submitted your registration yet.</p>
+      <a routerLink="/submit" class="sd-cta sd-cta--primary">Start Registration</a>
+    </div>
+
+    <h2 class="sd-section-title">Notifications</h2>
+    <div class="sd-notifications">
+      <ul *ngIf="notifications.length">
+        <li
+          *ngFor="let n of notifications"
+          [class.sd-notification--success]="n.type === 'success'"
+          [class.sd-notification--warning]="n.type === 'warning'"
+        >
+          <i
+            class="bi"
+            [class.bi-check-circle-fill]="n.type === 'success'"
+            [class.bi-exclamation-circle-fill]="n.type === 'warning'"
+            [class.bi-info-circle-fill]="n.type === 'info'"
+          ></i>
+          {{ n.text }}
+        </li>      </ul>
+    </div>
+  </ng-container>
+</section>
